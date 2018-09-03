@@ -1,10 +1,10 @@
-package org.processmining.newpackageivy.connections;
+package org.processmining.stochasticawareconformancechecking.connections;
 
 import org.processmining.framework.connections.impl.AbstractConnection;
-import org.processmining.newpackageivy.models.YourFirstInput;
-import org.processmining.newpackageivy.models.YourOutput;
-import org.processmining.newpackageivy.models.YourSecondInput;
-import org.processmining.newpackageivy.parameters.YourParameters;
+import org.processmining.stochasticawareconformancechecking.models.YourFirstInput;
+import org.processmining.stochasticawareconformancechecking.models.YourOutput;
+import org.processmining.stochasticawareconformancechecking.models.YourSecondInput;
+import org.processmining.stochasticawareconformancechecking.parameters.YourParameters;
 
 public class YourConnection extends AbstractConnection {
 

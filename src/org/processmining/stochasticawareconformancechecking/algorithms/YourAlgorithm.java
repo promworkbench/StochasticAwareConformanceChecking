@@ -1,10 +1,10 @@
-package org.processmining.newpackageivy.algorithms;
+package org.processmining.stochasticawareconformancechecking.algorithms;
 
 import org.processmining.framework.plugin.PluginContext;
-import org.processmining.newpackageivy.models.YourFirstInput;
-import org.processmining.newpackageivy.models.YourOutput;
-import org.processmining.newpackageivy.models.YourSecondInput;
-import org.processmining.newpackageivy.parameters.YourParameters;
+import org.processmining.stochasticawareconformancechecking.models.YourFirstInput;
+import org.processmining.stochasticawareconformancechecking.models.YourOutput;
+import org.processmining.stochasticawareconformancechecking.models.YourSecondInput;
+import org.processmining.stochasticawareconformancechecking.parameters.YourParameters;
 
 public class YourAlgorithm {
 
