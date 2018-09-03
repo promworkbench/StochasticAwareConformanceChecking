@@ -1,0 +1,61 @@
+package org.processmining.stochasticawareconformancechecking.automata;
+
+import java.util.ArrayList;
+
+import gnu.trove.iterator.TShortIterator;
+import gnu.trove.map.TObjectShortMap;
+import gnu.trove.map.hash.TObjectShortHashMap;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
+public class StochasticDeterministicFiniteAutomatonMappedImpl<X> extends StochasticDeterministicFiniteAutomatonImpl
+		implements StochasticDeterministicFiniteAutomatonMapped<X> {
+
+	TObjectShortMap<X> activity2index = new TObjectShortHashMap<>(10, 0.6f, (short) -1);
+	ArrayList<X> index2activity = new ArrayList<>();
+	short maxIndex = -1;
+
+	public short transform(X element) {
+		short index = activity2index.putIfAbsent(element, (short) (maxIndex + 1));
+		if (index == activity2index.getNoEntryValue()) {
+			if (maxIndex == Short.MAX_VALUE) {
+				throw new RuntimeException("too many activities");
+			}
+			index2activity.add(element);
+			index = (short) (maxIndex + 1);
+			maxIndex++;
+		}
+		return index;
+	}
+
+	public void transform(X element, short index) {
+		activity2index.put(element, index);
+		while (index2activity.size() <= index) {
+			index2activity.add(null);
+		}
+		index2activity.set(index, element);
+		maxIndex = (short) Math.max(index, maxIndex);
+	}
+
+	public X transform(short index) {
+		return index2activity.get(index);
+	}
+
+	public TShortIterator allMappedIndices() {
+		return new TShortIterator() {
+			short now = -1;
+
+			public void remove() {
+				throw new NotImplementedException();
+			}
+
+			public boolean hasNext() {
+				return now < index2activity.size() - 1;
+			}
+
+			public short next() {
+				now++;
+				return now;
+			}
+		};
+	}
+}
