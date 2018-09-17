@@ -1,6 +1,6 @@
 package org.processmining.stochasticawareconformancechecking.automata;
 
-public interface StochasticDeterministicFiniteAutomaton {
+public interface StochasticDeterministicFiniteAutomaton extends Cloneable {
 
 	int getInitialState();
 
@@ -10,7 +10,7 @@ public interface StochasticDeterministicFiniteAutomaton {
 	 *         necessarily count the number of states, but gives an upper bound.
 	 */
 	int getNumberOfStates();
-	
+
 	boolean containsEdge(int stateFrom, short activity);
 
 	EdgeIterable getEdgesIterator();
@@ -44,6 +44,8 @@ public interface StochasticDeterministicFiniteAutomaton {
 	void addEdge(int source, short activity, int target, double probability);
 
 	int addState();
+
+	public StochasticDeterministicFiniteAutomaton clone() throws CloneNotSupportedException;
 
 	public interface EdgeIterable {
 

@@ -4,7 +4,7 @@ import org.processmining.stochasticawareconformancechecking.automata.StochasticD
 
 /**
  * An automaton without choices has an entropy of 0. Add a small choice to each
- * final state to prevent this.
+ * final state to prevent this. In place.
  * 
  * @author sander
  *

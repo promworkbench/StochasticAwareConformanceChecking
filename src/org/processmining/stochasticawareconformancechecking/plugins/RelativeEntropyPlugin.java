@@ -30,7 +30,7 @@ public class RelativeEntropyPlugin {
 	@PluginVariant(variantLabel = "Compute entropy of sdfa, dialog", requiredParameterLabels = { 0, 1 })
 	public <X> HTMLToString computeSDFASDFA(final PluginContext context,
 			StochasticDeterministicFiniteAutomatonMapped<String> automatonA,
-			StochasticDeterministicFiniteAutomatonMapped<String> automatonB) {
+			StochasticDeterministicFiniteAutomatonMapped<String> automatonB) throws CloneNotSupportedException {
 		final Pair<Double, Double> entropy = RelativeEntropy.relativeEntropy(automatonA, automatonB);
 		return new HTMLToString() {
 			public String toHTMLString(boolean includeHTMLTags) {
@@ -46,7 +46,7 @@ public class RelativeEntropyPlugin {
 	@UITopiaVariant(affiliation = IMMiningDialog.affiliation, author = IMMiningDialog.author, email = IMMiningDialog.email)
 	@PluginVariant(variantLabel = "Compute entropy of sdfa, dialog", requiredParameterLabels = { 0, 1 })
 	public HTMLToString computeSPNSDFA(final PluginContext context, XLog log, StochasticNet pnB)
-			throws IllegalTransitionException, UnsupportedPetriNetException {
+			throws IllegalTransitionException, UnsupportedPetriNetException, CloneNotSupportedException {
 
 		StochasticDeterministicFiniteAutomatonMapped<String> automatonA = Log2StochasticDeterministicFiniteAutomaton
 				.convert(log, MiningParameters.getDefaultClassifier(), new ProMCanceller() {

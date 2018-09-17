@@ -58,4 +58,15 @@ public class StochasticDeterministicFiniteAutomatonMappedImpl<X> extends Stochas
 			}
 		};
 	}
+
+	@SuppressWarnings("unchecked")
+	public StochasticDeterministicFiniteAutomatonMappedImpl<X> clone() throws CloneNotSupportedException {
+		StochasticDeterministicFiniteAutomatonMappedImpl<X> result = (StochasticDeterministicFiniteAutomatonMappedImpl<X>) super.clone();
+
+		result.activity2index = new TObjectShortHashMap<>(this.activity2index);
+		result.index2activity = new ArrayList<>(this.index2activity);
+		result.maxIndex = this.maxIndex;
+
+		return result;
+	}
 }

@@ -13,10 +13,10 @@ public class StochasticDeterministicFiniteAutomatonImpl implements StochasticDet
 
 	private int maxState;
 
-	private final TIntArrayList sources;
-	private final TIntArrayList targets;
-	private final TShortArrayList activities;
-	private final TDoubleArrayList probabilities;
+	private TIntArrayList sources;
+	private TIntArrayList targets;
+	private TShortArrayList activities;
+	private TDoubleArrayList probabilities;
 
 	public StochasticDeterministicFiniteAutomatonImpl() {
 		maxState = 0;
@@ -189,6 +189,18 @@ public class StochasticDeterministicFiniteAutomatonImpl implements StochasticDet
 
 	public String toString() {
 		return StochasticDeterministicFiniteAutomaton2Dot.toDot(this).toString();
+	}
+
+	public StochasticDeterministicFiniteAutomatonImpl clone() throws CloneNotSupportedException {
+		StochasticDeterministicFiniteAutomatonImpl result = (StochasticDeterministicFiniteAutomatonImpl) super.clone();
+
+		result.activities = new TShortArrayList(this.activities);
+		result.maxState = this.maxState;
+		result.probabilities = new TDoubleArrayList(this.probabilities);
+		result.sources = new TIntArrayList(this.sources);
+		result.targets = new TIntArrayList(this.targets);
+
+		return result;
 	}
 
 	public final class EdgeIterableImpl implements EdgeIterable {

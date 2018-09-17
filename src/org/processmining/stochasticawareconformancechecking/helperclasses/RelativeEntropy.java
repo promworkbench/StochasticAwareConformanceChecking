@@ -13,10 +13,13 @@ public class RelativeEntropy {
 	 * @param a
 	 * @param b
 	 * @return pair of (recall, precision)
+	 * @throws CloneNotSupportedException
 	 */
 	public static <X> Pair<Double, Double> relativeEntropy(StochasticDeterministicFiniteAutomatonMapped<String> a,
-			StochasticDeterministicFiniteAutomatonMapped<String> b) {
+			StochasticDeterministicFiniteAutomatonMapped<String> b) throws CloneNotSupportedException {
 
+		a = a.clone();
+		b = b.clone();
 		MakeAutomatonChoiceFul.convert(a);
 		MakeAutomatonChoiceFul.convert(b);
 
