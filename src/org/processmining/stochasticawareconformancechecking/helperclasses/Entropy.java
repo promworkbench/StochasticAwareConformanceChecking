@@ -36,12 +36,10 @@ public class Entropy {
 		EdgeIterable it = automaton.getEdgesIterator();
 		while (it.hasNext()) {
 			it.next();
-
-			result += c[it.getSource()] * it.getProbability() * Math.log(it.getProbability()) / l2;
-
+			result += c[it.getSource()] * it.getProbability() * Math.log(it.getProbability());
 		}
 
-		return -result;
+		return -result / l2;
 	}
 
 	private static double[] computeCs(StochasticDeterministicFiniteAutomaton automaton) {

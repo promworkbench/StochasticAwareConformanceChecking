@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import org.processmining.models.graphbased.directed.petrinet.StochasticNet;
 import org.processmining.models.graphbased.directed.petrinet.elements.TimedTransition;
@@ -18,6 +19,8 @@ import org.processmining.stochasticawareconformancechecking.helperclasses.Unsupp
 
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.custom_hash.TObjectIntCustomHashMap;
+import gnu.trove.set.hash.TCustomHashSet;
+import gnu.trove.set.hash.THashSet;
 import gnu.trove.strategy.HashingStrategy;
 
 public class StochasticPetriNet2StochasticDeterministicFiniteAutomaton {
@@ -25,7 +28,7 @@ public class StochasticPetriNet2StochasticDeterministicFiniteAutomaton {
 	/**
 	 * For now, the final markings are not used. That is, the only final
 	 * markings are deadlock states, and every deadlock state is a final
-	 * marking.
+	 * marking. Furthermore, we assume that silent transitions have no weight.
 	 * 
 	 * @param net
 	 * @param initialMarking
@@ -82,46 +85,30 @@ public class StochasticPetriNet2StochasticDeterministicFiniteAutomaton {
 			int source = marking2state.get(marking);
 
 			s.setCurrentState(marking);
-			Collection<Transition> executableTransitions = s.getExecutableTransitions();
+			Set<TransitionMarkingPair> enabledTransitions = getEnabledTransitions(s, marking);
 
-			//gather the total weight of first-order steps
-			double sumWeights = getSumOfWeights(s, source);
-
-			//build the automaton
-			for (Transition t : executableTransitions) {
-				s.setCurrentState(marking);
-				s.executeExecutableTransition(t);
-				short[] newMarking = s.getCurrentInternalState().clone();
-				double probability = ((TimedTransition) t).getWeight() / sumWeights;
-
-				if (t.isInvisible()) {
-					/**
-					 * Silent steps are not allowed in the automaton. We perform
-					 * a forward search to include all steps possible with
-					 * tau-transitions from this marking.
-					 */
-
-					
-					performForwardSearch(s, result, source, newMarking, probability, marking2state, worklist);
-				} else {
-					short activity = result.transform(t.getLabel());
-					int target = marking2state.get(newMarking);
-					if (target == marking2state.getNoEntryValue()) {
-						target = result.addEdge(source, activity, probability);
-						marking2state.put(newMarking, target);
-
-						worklist.add(newMarking);
-					} else {
-						result.addEdge(source, activity, target, probability);
-					}
-				}
+			//first, compute the sum of weights
+			double sumWeights = 0;
+			for (TransitionMarkingPair pair : enabledTransitions) {
+				sumWeights += ((TimedTransition) pair.transition).getWeight();
 			}
 
-			//			/**
-			//			 * After gathering all the outgoing steps, we need to normalise the
-			//			 * probabilities, in case tau loops were present.
-			//			 */
-			//			normaliseProbabilities(result, source, sourceTerminationWeight);
+			//second, put the transitions into the automaton
+			for (TransitionMarkingPair pair : enabledTransitions) {
+				Transition t = pair.transition;
+				short[] newMarking = pair.marking;
+				short activity = result.transform(t.getLabel());
+				double probability = ((TimedTransition) t).getWeight() / sumWeights;
+				int target = marking2state.get(newMarking);
+				if (target == marking2state.getNoEntryValue()) {
+					target = result.addEdge(source, activity, probability);
+					marking2state.put(newMarking, target);
+
+					worklist.add(newMarking);
+				} else {
+					result.addEdge(source, activity, target, probability);
+				}
+			}
 		}
 
 		return result;
@@ -133,6 +120,89 @@ public class StochasticPetriNet2StochasticDeterministicFiniteAutomaton {
 			sumWeights += ((TimedTransition) t).getWeight();
 		}
 		return sumWeights;
+	}
+
+	private static class TransitionMarkingPair {
+		Transition transition;
+		short[] marking;
+
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + Arrays.hashCode(marking);
+			result = prime * result + ((transition == null) ? 0 : transition.hashCode());
+			return result;
+		}
+
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			TransitionMarkingPair other = (TransitionMarkingPair) obj;
+			if (!Arrays.equals(marking, other.marking))
+				return false;
+			if (transition == null) {
+				if (other.transition != null)
+					return false;
+			} else if (!transition.equals(other.transition))
+				return false;
+			return true;
+		}
+	}
+
+	/**
+	 * search through the enabled state spaces following tau transitions for
+	 * non-silent transitions that are enabled.
+	 * 
+	 * @return
+	 * @throws IllegalTransitionException
+	 */
+	private static Set<TransitionMarkingPair> getEnabledTransitions(EfficientStochasticNetSemanticsImpl semantics,
+			short[] startMarking) throws IllegalTransitionException {
+		Set<TransitionMarkingPair> result = new THashSet<>();
+		TCustomHashSet<short[]> visited = new TCustomHashSet<>(new HashingStrategy<short[]>() {
+			public int computeHashCode(short[] object) {
+				return Arrays.hashCode(object);
+			}
+
+			public boolean equals(short[] o1, short[] o2) {
+				return Arrays.equals(o1, o2);
+			}
+		});
+
+		ArrayDeque<short[]> localWorklist = new ArrayDeque<>();
+		localWorklist.add(startMarking);
+		visited.add(startMarking);
+
+		while (!localWorklist.isEmpty()) {
+			short[] marking = localWorklist.poll();
+
+			semantics.setCurrentState(marking);
+			Collection<Transition> enabledTransitions = semantics.getExecutableTransitions();
+
+			for (Transition t : enabledTransitions) {
+				semantics.setCurrentState(marking);
+				semantics.executeExecutableTransition(t);
+				if (t.isInvisible()) {
+					short[] m = semantics.getCurrentInternalState().clone();
+					if (!visited.contains(m)) {
+						localWorklist.add(m);
+						visited.add(m);
+					}
+				} else {
+					TransitionMarkingPair pair = new TransitionMarkingPair();
+					pair.marking = semantics.getCurrentInternalState().clone();
+					pair.transition = t;
+					result.add(pair);
+				}
+			}
+
+		}
+
+		return result;
 	}
 
 	/**
