@@ -29,8 +29,8 @@ public class RelativeEntropyPlugin {
 	@UITopiaVariant(affiliation = IMMiningDialog.affiliation, author = IMMiningDialog.author, email = IMMiningDialog.email)
 	@PluginVariant(variantLabel = "Compute entropy of sdfa, dialog", requiredParameterLabels = { 0, 1 })
 	public <X> HTMLToString computeSDFASDFA(final PluginContext context,
-			StochasticDeterministicFiniteAutomatonMapped<X> automatonA,
-			StochasticDeterministicFiniteAutomatonMapped<X> automatonB) {
+			StochasticDeterministicFiniteAutomatonMapped<String> automatonA,
+			StochasticDeterministicFiniteAutomatonMapped<String> automatonB) {
 		final Pair<Double, Double> entropy = RelativeEntropy.relativeEntropy(automatonA, automatonB);
 		return new HTMLToString() {
 			public String toHTMLString(boolean includeHTMLTags) {

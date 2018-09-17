@@ -101,6 +101,7 @@ public class StochasticPetriNet2StochasticDeterministicFiniteAutomaton {
 					 * tau-transitions from this marking.
 					 */
 
+					
 					performForwardSearch(s, result, source, newMarking, probability, marking2state, worklist);
 				} else {
 					short activity = result.transform(t.getLabel());
@@ -193,7 +194,7 @@ public class StochasticPetriNet2StochasticDeterministicFiniteAutomaton {
 							 * marking twice. Hence, there is a tau loop. We do
 							 * not support these.
 							 */
-							throw new UnsupportedPetriNetException();
+							//throw new UnsupportedPetriNetException();
 						} else {
 							/**
 							 * We reached a new state by following just
