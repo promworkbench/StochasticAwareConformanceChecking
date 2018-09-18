@@ -56,12 +56,13 @@ public class RelativeEntropy {
 	 */
 	public static <X> Pair<Double, Double> relativeEntropy(StochasticDeterministicFiniteAutomatonMapped<String> a,
 			StochasticDeterministicFiniteAutomatonMapped<String> b) throws CloneNotSupportedException {
-
+		
+		//pre-process the automata
 		a = a.clone();
 		b = b.clone();
-		FilterZeroEdges.filter(a);
+		FilterZeroEdges.filter(a); //filter edges that have zero weight
 		FilterZeroEdges.filter(b);
-		MakeAutomatonChoiceFul.convert(a);
+		MakeAutomatonChoiceFul.convert(a); //add a small choice to each automaton to prevent zero-entropy
 		MakeAutomatonChoiceFul.convert(b);
 
 		StochasticDeterministicFiniteAutomaton projection = Projection.project(a, b);

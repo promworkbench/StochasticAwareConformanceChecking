@@ -11,6 +11,7 @@ import org.processmining.plugins.InductiveMiner.plugins.dialogs.IMMiningDialog;
 import org.processmining.plugins.inductiveminer2.mining.MiningParameters;
 import org.processmining.stochasticawareconformancechecking.automata.Log2StochasticDeterministicFiniteAutomaton;
 import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomatonMapped;
+import org.processmining.stochasticawareconformancechecking.helperclasses.UnsupportedLogException;
 
 public class Log2StochasticDeterministicFiniteAutomatonPlugin {
 	@Plugin(name = "Convert log to stochastic deterministic finite automaton", returnLabels = {
@@ -19,7 +20,8 @@ public class Log2StochasticDeterministicFiniteAutomatonPlugin {
 							"Event log" }, userAccessible = true, help = "Convert log to stochastic deterministic finite automaton.", level = PluginLevel.Regular)
 	@UITopiaVariant(affiliation = IMMiningDialog.affiliation, author = IMMiningDialog.author, email = IMMiningDialog.email)
 	@PluginVariant(variantLabel = "Mine a sdfa, dialog", requiredParameterLabels = { 0 })
-	public StochasticDeterministicFiniteAutomatonMapped<String> convert(final PluginContext context, XLog log) {
+	public StochasticDeterministicFiniteAutomatonMapped<String> convert(final PluginContext context, XLog log)
+			throws UnsupportedLogException {
 		return Log2StochasticDeterministicFiniteAutomaton.convert(log, MiningParameters.defaultClassifier,
 				new ProMCanceller() {
 					public boolean isCancelled() {

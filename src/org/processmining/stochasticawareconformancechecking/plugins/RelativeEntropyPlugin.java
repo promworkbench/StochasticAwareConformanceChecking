@@ -1,7 +1,5 @@
 package org.processmining.stochasticawareconformancechecking.plugins;
 
-import java.util.List;
-
 import org.deckfour.xes.model.XLog;
 import org.processmining.contexts.uitopia.annotations.UITopiaVariant;
 import org.processmining.framework.plugin.PluginContext;
@@ -20,6 +18,7 @@ import org.processmining.stochasticawareconformancechecking.automata.Log2Stochas
 import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomatonMapped;
 import org.processmining.stochasticawareconformancechecking.automata.StochasticPetriNet2StochasticDeterministicFiniteAutomaton;
 import org.processmining.stochasticawareconformancechecking.helperclasses.RelativeEntropy;
+import org.processmining.stochasticawareconformancechecking.helperclasses.UnsupportedLogException;
 import org.processmining.stochasticawareconformancechecking.helperclasses.UnsupportedPetriNetException;
 
 public class RelativeEntropyPlugin {
@@ -46,7 +45,8 @@ public class RelativeEntropyPlugin {
 	@UITopiaVariant(affiliation = IMMiningDialog.affiliation, author = IMMiningDialog.author, email = IMMiningDialog.email)
 	@PluginVariant(variantLabel = "Compute entropy of sdfa, dialog", requiredParameterLabels = { 0, 1 })
 	public HTMLToString computeSPNSDFA(final PluginContext context, XLog log, StochasticNet pnB)
-			throws IllegalTransitionException, UnsupportedPetriNetException, CloneNotSupportedException {
+			throws IllegalTransitionException, UnsupportedPetriNetException, CloneNotSupportedException,
+			UnsupportedLogException {
 
 		StochasticDeterministicFiniteAutomatonMapped<String> automatonA = Log2StochasticDeterministicFiniteAutomaton
 				.convert(log, MiningParameters.getDefaultClassifier(), new ProMCanceller() {
@@ -57,10 +57,8 @@ public class RelativeEntropyPlugin {
 
 		Marking initialMarking = StochasticPetriNet2StochasticDeterministicFiniteAutomatonPlugin
 				.guessInitialMarking(pnB);
-		List<Marking> finalMarkings = StochasticPetriNet2StochasticDeterministicFiniteAutomatonPlugin
-				.guessFinalMarkings(pnB);
 		StochasticDeterministicFiniteAutomatonMapped<String> automatonB = StochasticPetriNet2StochasticDeterministicFiniteAutomaton
-				.convert(pnB, initialMarking, finalMarkings);
+				.convert(pnB, initialMarking);
 		final Pair<Double, Double> entropy = RelativeEntropy.relativeEntropy(automatonA, automatonB);
 		return new HTMLToString() {
 			public String toHTMLString(boolean includeHTMLTags) {

@@ -1,9 +1,5 @@
 package org.processmining.stochasticawareconformancechecking.plugins;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import org.processmining.contexts.uitopia.annotations.UITopiaVariant;
 import org.processmining.framework.plugin.PluginContext;
 import org.processmining.framework.plugin.annotations.Plugin;
@@ -29,8 +25,7 @@ public class StochasticPetriNet2StochasticDeterministicFiniteAutomatonPlugin {
 	public StochasticDeterministicFiniteAutomatonMapped<String> convert(final PluginContext context, StochasticNet net)
 			throws IllegalTransitionException, UnsupportedPetriNetException {
 		Marking initialMarking = guessInitialMarking(net);
-		Collection<Marking> finalMarkings = guessFinalMarkings(net);
-		return StochasticPetriNet2StochasticDeterministicFiniteAutomaton.convert(net, initialMarking, finalMarkings);
+		return StochasticPetriNet2StochasticDeterministicFiniteAutomaton.convert(net, initialMarking);
 	}
 
 	public static Marking guessInitialMarking(Petrinet net) {
@@ -41,18 +36,5 @@ public class StochasticPetriNet2StochasticDeterministicFiniteAutomatonPlugin {
 			}
 		}
 		return result;
-	}
-
-	public static List<Marking> guessFinalMarkings(Petrinet net) {
-		Marking result = new Marking();
-		for (Place p : net.getPlaces()) {
-			if (net.getOutEdges(p).isEmpty()) {
-				result.add(p);
-			}
-		}
-
-		List<Marking> list = new ArrayList<>();
-		list.add(result);
-		return list;
 	}
 }

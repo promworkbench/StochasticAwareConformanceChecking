@@ -6,13 +6,22 @@ import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
 import org.processmining.framework.plugin.ProMCanceller;
 import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomaton.EdgeIterableOutgoing;
+import org.processmining.stochasticawareconformancechecking.helperclasses.UnsupportedLogException;
 
 import gnu.trove.map.TIntIntMap;
 import gnu.trove.map.hash.TIntIntHashMap;
 
 public class Log2StochasticDeterministicFiniteAutomaton {
 	public static StochasticDeterministicFiniteAutomatonMapped<String> convert(XLog log, XEventClassifier classifier,
-			ProMCanceller canceller) {
+			ProMCanceller canceller) throws UnsupportedLogException {
+
+		/**
+		 * If the log is empty, there is no SDFA that can represent it.
+		 */
+		if (log.isEmpty()) {
+			throw new UnsupportedLogException("Empty logs are not supported.");
+		}
+
 		StochasticDeterministicFiniteAutomatonMapped<String> result = new StochasticDeterministicFiniteAutomatonMappedImpl<>();
 
 		/**
