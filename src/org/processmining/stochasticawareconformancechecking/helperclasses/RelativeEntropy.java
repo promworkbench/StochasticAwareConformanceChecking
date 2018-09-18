@@ -7,7 +7,7 @@ import org.processmining.stochasticawareconformancechecking.automata.StochasticD
 
 public class RelativeEntropy {
 
-	public static void main(String... args) throws CloneNotSupportedException {
+	public static void main(String... args) throws CloneNotSupportedException, UnsupportedAutomatonException {
 
 		int modelTraces = 1;
 		double loopbackprobability = 0;
@@ -30,9 +30,9 @@ public class RelativeEntropy {
 			int finalState = 0;
 			if (modelTraces > 0) {
 				int a = 0;
-				finalState = model.addEdge(log.getInitialState(), model.transform("a" + a), 0.01);
+				finalState = model.addEdge(log.getInitialState(), model.transform("a" + a), 1.0 / modelTraces);
 				for (a = 1; a < modelTraces; a++) {
-					model.addEdge(model.getInitialState(), model.transform("a" + a), finalState, 0.01);
+					model.addEdge(model.getInitialState(), model.transform("a" + a), finalState, 1.0 / modelTraces);
 				}
 			}
 
@@ -53,15 +53,26 @@ public class RelativeEntropy {
 	 * @param b
 	 * @return pair of (recall, precision)
 	 * @throws CloneNotSupportedException
+	 * @throws UnsupportedAutomatonException
 	 */
 	public static <X> Pair<Double, Double> relativeEntropy(StochasticDeterministicFiniteAutomatonMapped<String> a,
-			StochasticDeterministicFiniteAutomatonMapped<String> b) throws CloneNotSupportedException {
-		
+			StochasticDeterministicFiniteAutomatonMapped<String> b)
+			throws CloneNotSupportedException, UnsupportedAutomatonException {
+
 		//pre-process the automata
 		a = a.clone();
 		b = b.clone();
 		FilterZeroEdges.filter(a); //filter edges that have zero weight
 		FilterZeroEdges.filter(b);
+
+		//check for death paths
+		if (CheckDeadPaths.hasDeathPaths(a)) {
+			throw new UnsupportedAutomatonException("Automaton contains death paths.");
+		}
+		if (CheckDeadPaths.hasDeathPaths(b)) {
+			throw new UnsupportedAutomatonException("Automaton contains death paths.");
+		}
+
 		MakeAutomatonChoiceFul.convert(a); //add a small choice to each automaton to prevent zero-entropy
 		MakeAutomatonChoiceFul.convert(b);
 

@@ -18,6 +18,7 @@ import org.processmining.stochasticawareconformancechecking.automata.Log2Stochas
 import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomatonMapped;
 import org.processmining.stochasticawareconformancechecking.automata.StochasticPetriNet2StochasticDeterministicFiniteAutomaton;
 import org.processmining.stochasticawareconformancechecking.helperclasses.RelativeEntropy;
+import org.processmining.stochasticawareconformancechecking.helperclasses.UnsupportedAutomatonException;
 import org.processmining.stochasticawareconformancechecking.helperclasses.UnsupportedLogException;
 import org.processmining.stochasticawareconformancechecking.helperclasses.UnsupportedPetriNetException;
 
@@ -29,7 +30,8 @@ public class RelativeEntropyPlugin {
 	@PluginVariant(variantLabel = "Compute entropy of sdfa, dialog", requiredParameterLabels = { 0, 1 })
 	public <X> HTMLToString computeSDFASDFA(final PluginContext context,
 			StochasticDeterministicFiniteAutomatonMapped<String> automatonA,
-			StochasticDeterministicFiniteAutomatonMapped<String> automatonB) throws CloneNotSupportedException {
+			StochasticDeterministicFiniteAutomatonMapped<String> automatonB)
+			throws CloneNotSupportedException, UnsupportedAutomatonException {
 		final Pair<Double, Double> entropy = RelativeEntropy.relativeEntropy(automatonA, automatonB);
 		return new HTMLToString() {
 			public String toHTMLString(boolean includeHTMLTags) {
@@ -46,7 +48,7 @@ public class RelativeEntropyPlugin {
 	@PluginVariant(variantLabel = "Compute entropy of sdfa, dialog", requiredParameterLabels = { 0, 1 })
 	public HTMLToString computeSPNSDFA(final PluginContext context, XLog log, StochasticNet pnB)
 			throws IllegalTransitionException, UnsupportedPetriNetException, CloneNotSupportedException,
-			UnsupportedLogException {
+			UnsupportedLogException, UnsupportedAutomatonException {
 
 		StochasticDeterministicFiniteAutomatonMapped<String> automatonA = Log2StochasticDeterministicFiniteAutomaton
 				.convert(log, MiningParameters.getDefaultClassifier(), new ProMCanceller() {
