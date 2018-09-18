@@ -239,6 +239,13 @@ public class StochasticDeterministicFiniteAutomatonImpl implements StochasticDet
 		public double getProbability() {
 			return probability;
 		}
+
+		public void remove() {
+			itSources.remove();
+			itTargets.remove();
+			itActivities.remove();
+			itProbabilities.remove();
+		}
 	}
 
 	public class EdgeIterableIncomingImpl implements EdgeIterableIncoming {

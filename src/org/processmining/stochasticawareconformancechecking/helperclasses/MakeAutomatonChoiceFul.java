@@ -1,5 +1,7 @@
-package org.processmining.stochasticawareconformancechecking.automata;
+package org.processmining.stochasticawareconformancechecking.helperclasses;
 
+import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomaton;
+import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomatonMapped;
 import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomaton.EdgeIterableOutgoing;
 
 /**
@@ -18,7 +20,8 @@ public class MakeAutomatonChoiceFul {
 		short escapeActivityIndex = automaton.transform(escapeActivity);
 		int escapeState = -1;
 
-		for (int state = 0; state < automaton.getNumberOfStates(); state++) {
+		int states = automaton.getNumberOfStates();
+		for (int state = 0; state < states; state++) {
 
 			//count the outgoing probability
 			it.reset(state);

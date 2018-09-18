@@ -60,6 +60,8 @@ public interface StochasticDeterministicFiniteAutomaton extends Cloneable {
 		public short getActivity();
 
 		public double getProbability();
+
+		public void remove();
 	}
 
 	public interface EdgeIterableIncoming {
