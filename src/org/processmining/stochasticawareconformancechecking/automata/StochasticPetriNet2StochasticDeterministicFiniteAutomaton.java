@@ -113,6 +113,17 @@ public class StochasticPetriNet2StochasticDeterministicFiniteAutomaton {
 	 */
 	private static Map<Transition, short[]> getEnabledTransitions(EfficientStochasticNetSemanticsImpl semantics,
 			short[] startMarking) throws IllegalTransitionException, UnsupportedPetriNetException {
+		TObjectIntMap<Transition> shortestPaths = new TObjectIntCustomHashMap<>(new HashingStrategy<Transition>() {
+			private static final long serialVersionUID = -1008906392937976598L;
+
+			public int computeHashCode(Transition object) {
+				return object.getLabel().hashCode();
+			}
+
+			public boolean equals(Transition o1, Transition o2) {
+				return o1.getLabel().equals(o2.getLabel());
+			}
+		}, 10, 0.5f, Integer.MAX_VALUE);
 		Map<Transition, short[]> result = new TCustomHashMap<>(new HashingStrategy<Transition>() {
 			private static final long serialVersionUID = -1008906392937976598L;
 
@@ -137,11 +148,14 @@ public class StochasticPetriNet2StochasticDeterministicFiniteAutomaton {
 		});
 
 		ArrayDeque<short[]> localWorklist = new ArrayDeque<>();
+		ArrayDeque<Integer> localWorklistSteps = new ArrayDeque<>();
 		localWorklist.add(startMarking);
+		localWorklistSteps.add(0);
 		visited.add(startMarking);
 
 		while (!localWorklist.isEmpty()) {
 			short[] marking = localWorklist.poll();
+			int steps = localWorklistSteps.poll();
 
 			semantics.setCurrentState(marking);
 			Collection<Transition> enabledTransitions = semantics.getExecutableTransitions();
@@ -153,14 +167,26 @@ public class StochasticPetriNet2StochasticDeterministicFiniteAutomaton {
 					short[] m = semantics.getCurrentInternalState().clone();
 					if (!visited.contains(m)) {
 						localWorklist.add(m);
+						localWorklistSteps.add(steps + 1);
 						visited.add(m);
 					}
 				} else {
+					short[] newMarking = semantics.getCurrentInternalState().clone();
 					if (result.containsKey(t)) {
-						throw new UnsupportedPetriNetException(
-								"The Petri net contains two ways to execute the same transition.");
+						//this transition was already reached.
+						//see if we found a shorter path
+
+						if (steps + 1 < shortestPaths.get(t)) {
+							shortestPaths.put(t, steps + 1);
+							result.put(t, newMarking);
+						}
+
+						//						throw new UnsupportedPetriNetException(
+						//								"The Petri net contains two ways to execute the same transition.");
+					} else {
+						shortestPaths.put(t, steps + 1);
+						result.put(t, newMarking);
 					}
-					result.put(t, semantics.getCurrentInternalState().clone());
 				}
 			}
 
