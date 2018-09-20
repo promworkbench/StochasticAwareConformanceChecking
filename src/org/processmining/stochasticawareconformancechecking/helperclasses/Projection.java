@@ -46,15 +46,51 @@ public class Projection {
 			int stateA = StatePair.unpackA(sourcePair);
 			int stateB = StatePair.unpackB(sourcePair);
 
-			for (itA.reset(stateA); itA.hasNext();) {
-				short tA = AToB.get(itA.nextActivity());
-				if (tA != -1) {
-					for (itB.reset(stateB); itB.hasNext();) {
-						short tB = itB.nextActivity();
-						if (tA == tB) {
-							//for all outgoing edges with the same activities
-							process(result, worklist, statePair2conjunctionState, itA, itB, projectionSourceState,
-									AToB);
+			//count the termination probability, being the minimum of A and B
+			double termination;
+			{
+				double terminationA = 1;
+				itA.reset(stateA);
+				while (itA.hasNext()) {
+					terminationA -= itA.nextProbability();
+				}
+				double terminationB = 1;
+				itB.reset(stateB);
+				while (itB.hasNext()) {
+					terminationB -= itB.nextProbability();
+				}
+				termination = Math.min(terminationA, terminationB);
+			}
+
+			//count the sum probability
+			double totalProbabilty = termination;
+			{
+				for (itA.reset(stateA); itA.hasNext();) {
+					short tA = AToB.get(itA.nextActivity());
+					if (tA != -1) {
+						for (itB.reset(stateB); itB.hasNext();) {
+							short tB = itB.nextActivity();
+							if (tA == tB) {
+								//for all outgoing edges with the same activities
+								totalProbabilty += Math.min(itA.getProbability(), itB.getProbability());
+							}
+						}
+					}
+				}
+			}
+
+			//add the edges to the automaton
+			{
+				for (itA.reset(stateA); itA.hasNext();) {
+					short tA = AToB.get(itA.nextActivity());
+					if (tA != -1) {
+						for (itB.reset(stateB); itB.hasNext();) {
+							short tB = itB.nextActivity();
+							if (tA == tB) {
+								//for all outgoing edges with the same activities
+								process(result, worklist, statePair2conjunctionState, itA, itB, projectionSourceState,
+										AToB, totalProbabilty);
+							}
 						}
 					}
 				}
@@ -66,14 +102,14 @@ public class Projection {
 
 	public static void process(StochasticDeterministicFiniteAutomatonImpl result, TLongArrayStack worklist,
 			TLongIntMap statePair2conjunctionState, EdgeIterableOutgoing itA, EdgeIterableOutgoing itB,
-			int conjunctionSourceState, TShortShortMap AToB) {
+			int conjunctionSourceState, TShortShortMap AToB, double totalProbabilty) {
 		short tA = AToB.get(itA.getActivity());
 		short tB = itB.getActivity();
 		if (tA != -1 && tA == tB) {
 			long statePairTarget = StatePair.pack(itA.getTarget(), itB.getTarget());
 			int conjunctionTargetState = statePair2conjunctionState.get(statePairTarget);
 
-			double probability = Math.min(itA.getProbability(), itB.getProbability());
+			double probability = Math.min(itA.getProbability(), itB.getProbability()) / totalProbabilty;
 
 			if (conjunctionTargetState == statePair2conjunctionState.getNoEntryValue()) {
 				//this state pair did not exist yet
