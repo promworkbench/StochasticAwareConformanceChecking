@@ -45,7 +45,7 @@ public class RelativeEntropy {
 
 		System.out.println("model traces:         " + modelTraces);
 		System.out.println("loopback probability: " + loopbackprobability);
-		System.out.println(entropy);
+		System.out.println("full measure: " + entropy);
 		System.out.println("half measure: " + entropyHalf);
 	}
 
