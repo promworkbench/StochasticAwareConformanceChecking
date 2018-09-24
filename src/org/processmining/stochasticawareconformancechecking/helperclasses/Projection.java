@@ -16,7 +16,7 @@ import gnu.trove.stack.array.TLongArrayStack;
 public class Projection {
 
 	public static enum ChooseProbability {
-		A, B;
+		A, B, Minimum;
 
 		public double getProbability(double probabilityA, double probabilityB) {
 			switch (this) {
@@ -24,6 +24,8 @@ public class Projection {
 					return probabilityA;
 				case B :
 					return probabilityB;
+				case Minimum :
+					return Math.min(probabilityA, probabilityB);
 				default :
 					return Double.MIN_VALUE;
 			}
@@ -75,7 +77,7 @@ public class Projection {
 				while (itB.hasNext()) {
 					terminationB -= itB.nextProbability();
 				}
-				System.out.println("  add " + terminationA + ", " + terminationB + ", termination");
+				//System.out.println("  add " + terminationA + ", " + terminationB + ", termination");
 				termination = chooseProbability.getProbability(terminationA, terminationB);
 			}
 
@@ -89,7 +91,7 @@ public class Projection {
 							short tB = itB.nextActivity();
 							if (tA == tB) {
 								//for all outgoing edges with the same activities
-								System.out.println("  add " + itA.getProbability() + ", " + itB.getProbability() + ", activity " + itA.getActivity());
+								//System.out.println("  add " + itA.getProbability() + ", " + itB.getProbability() + ", activity " + itA.getActivity());
 								totalProbabilty += chooseProbability.getProbability(itA.getProbability(),
 										itB.getProbability());
 							}
@@ -97,8 +99,8 @@ public class Projection {
 					}
 				}
 			}
-			
-			System.out.println(" total probability: " + totalProbabilty);
+
+			//System.out.println(" total probability: " + totalProbabilty);
 
 			//add the edges to the automaton
 			{
@@ -123,7 +125,8 @@ public class Projection {
 
 	public static void process(StochasticDeterministicFiniteAutomatonImpl result, TLongArrayStack worklist,
 			TLongIntMap statePair2conjunctionState, EdgeIterableOutgoing itA, EdgeIterableOutgoing itB,
-			int conjunctionSourceState, TShortShortMap AToB, double totalProbability, ChooseProbability chooseProbability) {
+			int conjunctionSourceState, TShortShortMap AToB, double totalProbability,
+			ChooseProbability chooseProbability) {
 		short tA = AToB.get(itA.getActivity());
 		short tB = itB.getActivity();
 		if (tA != -1 && tA == tB) {

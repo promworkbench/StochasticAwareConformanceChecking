@@ -41,10 +41,12 @@ public class RelativeEntropy {
 		}
 
 		Pair<Double, Double> entropy = relativeEntropy(log, model);
+		Pair<Double, Double> entropyHalf = relativeEntropyHalf(log, model);
 
 		System.out.println("model traces:         " + modelTraces);
 		System.out.println("loopback probability: " + loopbackprobability);
 		System.out.println(entropy);
+		System.out.println("half measure: " + entropyHalf);
 	}
 
 	/**
@@ -84,6 +86,53 @@ public class RelativeEntropy {
 		MakeAutomatonChoiceFul.convert(a); //add a small choice to each automaton to prevent zero-entropy
 		MakeAutomatonChoiceFul.convert(b);
 
+		StochasticDeterministicFiniteAutomaton projection = Projection.project(a, b, ChooseProbability.Minimum);
+
+		double eA = Entropy.entropy(a);
+		double eB = Entropy.entropy(b);
+		double eP = Entropy.entropy(projection);
+
+		return Pair.of(eP / eA, eP / eB);
+	}
+
+	/**
+	 * 
+	 * @param <X>
+	 * @param a
+	 * @param b
+	 * @return pair of (recall, precision), computed ignoring the probabilities
+	 *         of model/log.
+	 * @throws CloneNotSupportedException
+	 * @throws UnsupportedAutomatonException
+	 */
+	public static <X> Pair<Double, Double> relativeEntropyHalf(StochasticDeterministicFiniteAutomatonMapped<String> a,
+			StochasticDeterministicFiniteAutomatonMapped<String> b)
+			throws CloneNotSupportedException, UnsupportedAutomatonException {
+
+		if (!CheckProbabilities.checkProbabilities(a)) {
+			throw new UnsupportedAutomatonException("Automaton's probabilities are out of range.");
+		}
+		if (!CheckProbabilities.checkProbabilities(b)) {
+			throw new UnsupportedAutomatonException("Automaton's probabilities are out of range.");
+		}
+
+		//pre-process the automata
+		a = a.clone();
+		b = b.clone();
+		FilterZeroEdges.filter(a); //filter edges that have zero weight
+		FilterZeroEdges.filter(b);
+
+		//check for death paths
+		if (CheckDeadPaths.hasDeathPaths(a)) {
+			throw new UnsupportedAutomatonException("Automaton contains death paths.");
+		}
+		if (CheckDeadPaths.hasDeathPaths(b)) {
+			throw new UnsupportedAutomatonException("Automaton contains death paths.");
+		}
+
+		MakeAutomatonChoiceFul.convert(a); //add a small choice to each automaton to prevent zero-entropy
+		MakeAutomatonChoiceFul.convert(b);
+
 		StochasticDeterministicFiniteAutomaton projectionRecall = Projection.project(a, b, ChooseProbability.A);
 		StochasticDeterministicFiniteAutomaton projectionPrecision = Projection.project(a, b, ChooseProbability.B);
 
@@ -91,8 +140,6 @@ public class RelativeEntropy {
 		double eB = Entropy.entropy(b);
 		double ePr = Entropy.entropy(projectionRecall);
 		double ePp = Entropy.entropy(projectionPrecision);
-
-		System.out.println(projectionPrecision);
 
 		return Pair.of(ePr / eA, ePp / eB);
 	}
