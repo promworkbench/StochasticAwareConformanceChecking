@@ -12,7 +12,7 @@ public class Entropy {
 
 	public static int iterations = 1000;
 
-	public static void main(String... args) {
+	public static void main(String... args) throws UnsupportedAutomatonException {
 
 		//construct a stochastic automaton
 		StochasticDeterministicFiniteAutomaton sdfa = new StochasticDeterministicFiniteAutomatonImpl();
@@ -27,7 +27,17 @@ public class Entropy {
 		System.out.println("entropy: " + entropy);
 	}
 
-	public static double entropy(StochasticDeterministicFiniteAutomaton automaton) {
+	public static double entropy(StochasticDeterministicFiniteAutomaton automaton)
+			throws UnsupportedAutomatonException {
+
+		if (!CheckProbabilities.checkProbabilities(automaton)) {
+			throw new UnsupportedAutomatonException("Automaton's probabilities are out of range.");
+		}
+
+		if (CheckDeadPaths.hasDeathPaths(automaton)) {
+			throw new UnsupportedAutomatonException("Automaton contains death paths.");
+		}
+
 		double[] c = computeCs(automaton);
 
 		double result = 0;

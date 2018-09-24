@@ -357,7 +357,7 @@ public class StochasticDeterministicFiniteAutomatonImpl implements StochasticDet
 			sources.removeAt(current);
 			targets.removeAt(current);
 			activities.removeAt(current);
-			probabilities.removeAt(current);
+			probabilities.remove(current);
 			next--;
 			current--;
 		}

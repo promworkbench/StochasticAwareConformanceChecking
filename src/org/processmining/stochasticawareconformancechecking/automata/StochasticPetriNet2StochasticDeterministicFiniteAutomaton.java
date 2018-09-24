@@ -87,7 +87,13 @@ public class StochasticPetriNet2StochasticDeterministicFiniteAutomaton {
 				Transition t = pair.getKey();
 				short[] newMarking = pair.getValue();
 				short activity = result.transform(t.getLabel());
-				double probability = ((TimedTransition) t).getWeight() / sumWeights;
+				//for some reason, some transitions do not have weights; if that is the case, distribute the probabilities evenly over all transitions
+				double probability;
+				if (sumWeights > 0) {
+					probability = ((TimedTransition) t).getWeight() / sumWeights;
+				} else {
+					probability = 1.0 / enabledTransitions.size();
+				}
 				int target = marking2state.get(newMarking);
 				if (target == marking2state.getNoEntryValue()) {
 					target = result.addEdge(source, activity, probability);

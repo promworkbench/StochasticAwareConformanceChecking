@@ -4,6 +4,7 @@ import org.processmining.plugins.InductiveMiner.Pair;
 import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomaton;
 import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomatonMapped;
 import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomatonMappedImpl;
+import org.processmining.stochasticawareconformancechecking.helperclasses.Projection.ChooseProbability;
 
 public class RelativeEntropy {
 
@@ -59,6 +60,13 @@ public class RelativeEntropy {
 			StochasticDeterministicFiniteAutomatonMapped<String> b)
 			throws CloneNotSupportedException, UnsupportedAutomatonException {
 
+		if (!CheckProbabilities.checkProbabilities(a)) {
+			throw new UnsupportedAutomatonException("Automaton's probabilities are out of range.");
+		}
+		if (!CheckProbabilities.checkProbabilities(b)) {
+			throw new UnsupportedAutomatonException("Automaton's probabilities are out of range.");
+		}
+
 		//pre-process the automata
 		a = a.clone();
 		b = b.clone();
@@ -76,12 +84,16 @@ public class RelativeEntropy {
 		MakeAutomatonChoiceFul.convert(a); //add a small choice to each automaton to prevent zero-entropy
 		MakeAutomatonChoiceFul.convert(b);
 
-		StochasticDeterministicFiniteAutomaton projection = Projection.project(a, b);
+		StochasticDeterministicFiniteAutomaton projectionRecall = Projection.project(a, b, ChooseProbability.A);
+		StochasticDeterministicFiniteAutomaton projectionPrecision = Projection.project(a, b, ChooseProbability.B);
 
 		double eA = Entropy.entropy(a);
 		double eB = Entropy.entropy(b);
-		double eP = Entropy.entropy(projection);
+		double ePr = Entropy.entropy(projectionRecall);
+		double ePp = Entropy.entropy(projectionPrecision);
 
-		return Pair.of(eP / eA, eP / eB);
+		System.out.println(projectionPrecision);
+
+		return Pair.of(ePr / eA, ePp / eB);
 	}
 }

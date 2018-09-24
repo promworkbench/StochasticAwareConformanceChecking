@@ -14,8 +14,24 @@ import gnu.trove.map.hash.TShortShortHashMap;
 import gnu.trove.stack.array.TLongArrayStack;
 
 public class Projection {
+
+	public static enum ChooseProbability {
+		A, B;
+
+		public double getProbability(double probabilityA, double probabilityB) {
+			switch (this) {
+				case A :
+					return probabilityA;
+				case B :
+					return probabilityB;
+				default :
+					return Double.MIN_VALUE;
+			}
+		}
+	}
+
 	public static <X> StochasticDeterministicFiniteAutomaton project(StochasticDeterministicFiniteAutomatonMapped<X> a,
-			StochasticDeterministicFiniteAutomatonMapped<X> b) {
+			StochasticDeterministicFiniteAutomatonMapped<X> b, ChooseProbability chooseProbability) {
 		StochasticDeterministicFiniteAutomatonMappedImpl<X> result = new StochasticDeterministicFiniteAutomatonMappedImpl<>();
 
 		//first, relate the activities of the two automata
@@ -59,7 +75,8 @@ public class Projection {
 				while (itB.hasNext()) {
 					terminationB -= itB.nextProbability();
 				}
-				termination = Math.min(terminationA, terminationB);
+				System.out.println("  add " + terminationA + ", " + terminationB + ", termination");
+				termination = chooseProbability.getProbability(terminationA, terminationB);
 			}
 
 			//count the sum probability
@@ -72,12 +89,16 @@ public class Projection {
 							short tB = itB.nextActivity();
 							if (tA == tB) {
 								//for all outgoing edges with the same activities
-								totalProbabilty += Math.min(itA.getProbability(), itB.getProbability());
+								System.out.println("  add " + itA.getProbability() + ", " + itB.getProbability() + ", activity " + itA.getActivity());
+								totalProbabilty += chooseProbability.getProbability(itA.getProbability(),
+										itB.getProbability());
 							}
 						}
 					}
 				}
 			}
+			
+			System.out.println(" total probability: " + totalProbabilty);
 
 			//add the edges to the automaton
 			{
@@ -89,7 +110,7 @@ public class Projection {
 							if (tA == tB) {
 								//for all outgoing edges with the same activities
 								process(result, worklist, statePair2conjunctionState, itA, itB, projectionSourceState,
-										AToB, totalProbabilty);
+										AToB, totalProbabilty, chooseProbability);
 							}
 						}
 					}
@@ -102,14 +123,15 @@ public class Projection {
 
 	public static void process(StochasticDeterministicFiniteAutomatonImpl result, TLongArrayStack worklist,
 			TLongIntMap statePair2conjunctionState, EdgeIterableOutgoing itA, EdgeIterableOutgoing itB,
-			int conjunctionSourceState, TShortShortMap AToB, double totalProbabilty) {
+			int conjunctionSourceState, TShortShortMap AToB, double totalProbability, ChooseProbability chooseProbability) {
 		short tA = AToB.get(itA.getActivity());
 		short tB = itB.getActivity();
 		if (tA != -1 && tA == tB) {
 			long statePairTarget = StatePair.pack(itA.getTarget(), itB.getTarget());
 			int conjunctionTargetState = statePair2conjunctionState.get(statePairTarget);
 
-			double probability = Math.min(itA.getProbability(), itB.getProbability()) / totalProbabilty;
+			double probability = chooseProbability.getProbability(itA.getProbability(), itB.getProbability())
+					/ totalProbability;
 
 			if (conjunctionTargetState == statePair2conjunctionState.getNoEntryValue()) {
 				//this state pair did not exist yet

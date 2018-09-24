@@ -1,8 +1,7 @@
 package org.processmining.stochasticawareconformancechecking.helperclasses;
 
-import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomaton;
-import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomatonMapped;
 import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomaton.EdgeIterableOutgoing;
+import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomatonMapped;
 
 /**
  * An automaton without choices has an entropy of 0. Add a small choice to each
@@ -13,35 +12,35 @@ import org.processmining.stochasticawareconformancechecking.automata.StochasticD
  */
 public class MakeAutomatonChoiceFul {
 	public static double epsilon = 0.0000000001;
-	public static String escapeActivity = "#*@#)Escape";
+	public static String escapeActivity = "(()Escape())";
 
 	public static void convert(StochasticDeterministicFiniteAutomatonMapped<String> automaton) {
 		EdgeIterableOutgoing it = automaton.getOutgoingEdgesIterator(automaton.getInitialState());
 		short escapeActivityIndex = automaton.transform(escapeActivity);
 		int escapeState = -1;
 
-		int states = automaton.getNumberOfStates();
-		for (int state = 0; state < states; state++) {
+		for (int state = 0; state < automaton.getNumberOfStates(); state++) {
 
-			//count the outgoing probability
-			it.reset(state);
-			double outgoingSum = 0;
-			while (it.hasNext()) {
-				outgoingSum += it.nextProbability();
-			}
-
-			if (outgoingSum < 1) {
-				//this is a final state
-
-				//add a link to the escape state (and add that if necessary)
-				if (escapeState < 0) {
-					escapeState = automaton.addEdge(state, escapeActivityIndex, epsilon);
-				} else {
-					automaton.addEdge(state, escapeActivityIndex, escapeState, epsilon);
+			if (state != escapeState) {
+				//count the outgoing probability
+				it.reset(state);
+				double outgoingSum = 0;
+				while (it.hasNext()) {
+					outgoingSum += it.nextProbability();
 				}
 
-			}
+				if (outgoingSum < 1) {
+					//this is a final state
 
+					//add a link to the escape state (and add that if necessary)
+					if (escapeState < 0) {
+						escapeState = automaton.addEdge(state, escapeActivityIndex, epsilon);
+					} else {
+						automaton.addEdge(state, escapeActivityIndex, escapeState, epsilon);
+					}
+
+				}
+			}
 		}
 	}
 }
