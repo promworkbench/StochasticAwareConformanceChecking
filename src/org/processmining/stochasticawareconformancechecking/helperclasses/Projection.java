@@ -20,19 +20,6 @@ public class Projection {
 	public static enum ChooseProbability {
 		A, B, Minimum;
 
-		public BigDecimal getProbability(double probabilityA, double probabilityB) {
-			switch (this) {
-				case A :
-					return new BigDecimal(probabilityA);
-				case B :
-					return new BigDecimal(probabilityB);
-				case Minimum :
-					return new BigDecimal(Math.min(probabilityA, probabilityB));
-				default :
-					return null;
-			}
-		}
-
 		public BigDecimal getProbability(BigDecimal probabilityA, BigDecimal probabilityB) {
 			switch (this) {
 				case A :
@@ -79,44 +66,44 @@ public class Projection {
 			int stateA = StatePair.unpackA(sourcePair);
 			int stateB = StatePair.unpackB(sourcePair);
 
-			//count the termination probability, being the minimum of A and B
-			BigDecimal termination;
-			{
-				BigDecimal terminationA = BigDecimal.ONE;
-				itA.reset(stateA);
-				while (itA.hasNext()) {
-					terminationA = terminationA.subtract(itA.nextProbability());
-				}
-				BigDecimal terminationB = BigDecimal.ONE;
-				itB.reset(stateB);
-				while (itB.hasNext()) {
-					terminationB = terminationB.subtract(itB.nextProbability());
-				}
-				//System.out.println("  add " + terminationA + ", " + terminationB + ", termination");
-				termination = chooseProbability.getProbability(terminationA, terminationB);
-			}
-
-			//count the sum probability
-			BigDecimal totalProbability = termination;
-			{
-				for (itA.reset(stateA); itA.hasNext();) {
-					short tA = AToB.get(itA.nextActivity());
-					if (tA != -1) {
-						for (itB.reset(stateB); itB.hasNext();) {
-							short tB = itB.nextActivity();
-							if (tA == tB) {
-								//for all outgoing edges with the same activities
-								//System.out.println("  add " + itA.getProbability() + ", " + itB.getProbability() + ", activity " + itA.getActivity());
-								totalProbability = totalProbability.add(
-										chooseProbability.getProbability(itA.getProbability(), itB.getProbability()));
-							}
-						}
-					}
-				}
-			}
-
-			//System.out.println(" total probability: " + totalProbability);
-			assert (totalProbability.compareTo(BigDecimal.ONE) <= 0);
+			//			//count the termination probability, being the minimum of A and B
+			//			BigDecimal termination;
+			//			{
+			//				BigDecimal terminationA = BigDecimal.ONE;
+			//				itA.reset(stateA);
+			//				while (itA.hasNext()) {
+			//					terminationA = terminationA.subtract(itA.nextProbability());
+			//				}
+			//				BigDecimal terminationB = BigDecimal.ONE;
+			//				itB.reset(stateB);
+			//				while (itB.hasNext()) {
+			//					terminationB = terminationB.subtract(itB.nextProbability());
+			//				}
+			//				//System.out.println("  add " + terminationA + ", " + terminationB + ", termination");
+			//				termination = chooseProbability.getProbability(terminationA, terminationB);
+			//			}
+			//
+			//			//count the sum probability
+			//			BigDecimal totalProbability = termination;
+			//			{
+			//				for (itA.reset(stateA); itA.hasNext();) {
+			//					short tA = AToB.get(itA.nextActivity());
+			//					if (tA != -1) {
+			//						for (itB.reset(stateB); itB.hasNext();) {
+			//							short tB = itB.nextActivity();
+			//							if (tA == tB) {
+			//								//for all outgoing edges with the same activities
+			//								//System.out.println("  add " + itA.getProbability() + ", " + itB.getProbability() + ", activity " + itA.getActivity());
+			//								totalProbability = totalProbability.add(
+			//										chooseProbability.getProbability(itA.getProbability(), itB.getProbability()));
+			//							}
+			//						}
+			//					}
+			//				}
+			//			}
+			//
+			//			//System.out.println(" total probability: " + totalProbability);
+			//			assert (totalProbability.compareTo(BigDecimal.ONE) <= 0);
 
 			//add the edges to the automaton
 			{
@@ -127,8 +114,10 @@ public class Projection {
 							short tB = itB.nextActivity();
 							if (tA == tB) {
 								//for all outgoing edges with the same activities
+								//								process(result, worklist, statePair2conjunctionState, itA, itB, projectionSourceState,
+								//										AToB, totalProbability, chooseProbability);
 								process(result, worklist, statePair2conjunctionState, itA, itB, projectionSourceState,
-										AToB, totalProbability, chooseProbability);
+										AToB, BigDecimal.ZERO, chooseProbability);
 							}
 						}
 					}
@@ -149,9 +138,10 @@ public class Projection {
 			long statePairTarget = StatePair.pack(itA.getTarget(), itB.getTarget());
 			int conjunctionTargetState = statePair2conjunctionState.get(statePairTarget);
 
-			BigDecimal probability = chooseProbability.getProbability(itA.getProbability(), itB.getProbability())
-					.divide(totalProbability, result.getRoundingMathContext());
-			assert (totalProbability.compareTo(BigDecimal.ONE) <= 0);
+			//			BigDecimal probability = chooseProbability.getProbability(itA.getProbability(), itB.getProbability())
+			//					.divide(totalProbability, result.getRoundingMathContext());
+			//			assert (totalProbability.compareTo(BigDecimal.ONE) <= 0);
+			BigDecimal probability = chooseProbability.getProbability(itA.getProbability(), itB.getProbability());
 
 			if (conjunctionTargetState == statePair2conjunctionState.getNoEntryValue()) {
 				//this state pair did not exist yet

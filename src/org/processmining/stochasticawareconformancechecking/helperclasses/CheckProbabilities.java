@@ -9,15 +9,14 @@ import org.processmining.stochasticawareconformancechecking.automata.StochasticD
 public class CheckProbabilities {
 
 	public static boolean checkProbabilities(StochasticDeterministicFiniteAutomaton automaton) {
-		BigDecimal epsilon = new BigDecimal("1e-" + (automaton.getRoundingMathContext().getPrecision() - 2));
+		BigDecimal epsilon = StochasticUtils.getEpsilon(automaton);
 
 		{
 			EdgeIterable it = automaton.getEdgesIterator();
 			while (it.hasNext()) {
 				it.next();
 
-				if (it.getProbability().compareTo(BigDecimal.ZERO) < 0
-						|| it.getProbability().compareTo(BigDecimal.ONE) > 0) {
+				if (!StochasticUtils.isProbability(it.getProbability(), epsilon)) {
 					return false;
 				}
 			}
@@ -26,11 +25,8 @@ public class CheckProbabilities {
 		EdgeIterableOutgoing it = automaton.getOutgoingEdgesIterator(automaton.getInitialState());
 		for (int state = 0; state < automaton.getNumberOfStates(); state++) {
 			it.reset(state);
-			BigDecimal sum = BigDecimal.ZERO;
-			while (it.hasNext()) {
-				sum = sum.add(it.nextProbability());
-			}
-			if (sum.subtract(epsilon).compareTo(BigDecimal.ONE) > 0) {
+
+			if (!StochasticUtils.isProbability(StochasticUtils.getTerminationProbability(it, state), epsilon)) {
 				return false;
 			}
 		}
