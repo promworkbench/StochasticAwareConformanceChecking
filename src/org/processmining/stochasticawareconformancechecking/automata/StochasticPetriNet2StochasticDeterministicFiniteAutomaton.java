@@ -1,5 +1,6 @@
 package org.processmining.stochasticawareconformancechecking.automata;
 
+import java.math.BigDecimal;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Collection;
@@ -77,9 +78,9 @@ public class StochasticPetriNet2StochasticDeterministicFiniteAutomaton {
 			Map<Transition, short[]> enabledTransitions = getEnabledTransitions(s, marking);
 
 			//first, compute the sum of weights
-			double sumWeights = 0;
+			BigDecimal sumWeights = BigDecimal.ZERO;
 			for (Transition transition : enabledTransitions.keySet()) {
-				sumWeights += ((TimedTransition) transition).getWeight();
+				sumWeights.add(new BigDecimal(((TimedTransition) transition).getWeight()));
 			}
 
 			//second, put the transitions into the automaton
@@ -88,11 +89,13 @@ public class StochasticPetriNet2StochasticDeterministicFiniteAutomaton {
 				short[] newMarking = pair.getValue();
 				short activity = result.transform(t.getLabel());
 				//for some reason, some transitions do not have weights; if that is the case, distribute the probabilities evenly over all transitions
-				double probability;
-				if (sumWeights > 0) {
-					probability = ((TimedTransition) t).getWeight() / sumWeights;
+				BigDecimal probability;
+				if (sumWeights.compareTo(BigDecimal.ZERO) > 0) {
+					probability = new BigDecimal(((TimedTransition) t).getWeight()).divide(sumWeights,
+							result.getRoundingMathContext());
 				} else {
-					probability = 1.0 / enabledTransitions.size();
+					probability = BigDecimal.ONE.divide(new BigDecimal(enabledTransitions.size()),
+							result.getRoundingMathContext());
 				}
 				int target = marking2state.get(newMarking);
 				if (target == marking2state.getNoEntryValue()) {

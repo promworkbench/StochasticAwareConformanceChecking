@@ -1,5 +1,7 @@
 package org.processmining.stochasticawareconformancechecking.helperclasses;
 
+import java.math.BigDecimal;
+
 import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomaton;
 import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomaton.EdgeIterableOutgoing;
 import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomatonImpl;
@@ -18,16 +20,29 @@ public class Projection {
 	public static enum ChooseProbability {
 		A, B, Minimum;
 
-		public double getProbability(double probabilityA, double probabilityB) {
+		public BigDecimal getProbability(double probabilityA, double probabilityB) {
+			switch (this) {
+				case A :
+					return new BigDecimal(probabilityA);
+				case B :
+					return new BigDecimal(probabilityB);
+				case Minimum :
+					return new BigDecimal(Math.min(probabilityA, probabilityB));
+				default :
+					return null;
+			}
+		}
+
+		public BigDecimal getProbability(BigDecimal probabilityA, BigDecimal probabilityB) {
 			switch (this) {
 				case A :
 					return probabilityA;
 				case B :
 					return probabilityB;
 				case Minimum :
-					return Math.min(probabilityA, probabilityB);
+					return probabilityA.min(probabilityB);
 				default :
-					return Double.MIN_VALUE;
+					return null;
 			}
 		}
 	}
@@ -65,24 +80,24 @@ public class Projection {
 			int stateB = StatePair.unpackB(sourcePair);
 
 			//count the termination probability, being the minimum of A and B
-			double termination;
+			BigDecimal termination;
 			{
-				double terminationA = 1;
+				BigDecimal terminationA = BigDecimal.ONE;
 				itA.reset(stateA);
 				while (itA.hasNext()) {
-					terminationA -= itA.nextProbability();
+					terminationA = terminationA.subtract(itA.nextProbability());
 				}
-				double terminationB = 1;
+				BigDecimal terminationB = BigDecimal.ONE;
 				itB.reset(stateB);
 				while (itB.hasNext()) {
-					terminationB -= itB.nextProbability();
+					terminationB = terminationB.subtract(itB.nextProbability());
 				}
 				//System.out.println("  add " + terminationA + ", " + terminationB + ", termination");
 				termination = chooseProbability.getProbability(terminationA, terminationB);
 			}
 
 			//count the sum probability
-			double totalProbabilty = termination;
+			BigDecimal totalProbability = termination;
 			{
 				for (itA.reset(stateA); itA.hasNext();) {
 					short tA = AToB.get(itA.nextActivity());
@@ -92,15 +107,16 @@ public class Projection {
 							if (tA == tB) {
 								//for all outgoing edges with the same activities
 								//System.out.println("  add " + itA.getProbability() + ", " + itB.getProbability() + ", activity " + itA.getActivity());
-								totalProbabilty += chooseProbability.getProbability(itA.getProbability(),
-										itB.getProbability());
+								totalProbability = totalProbability.add(
+										chooseProbability.getProbability(itA.getProbability(), itB.getProbability()));
 							}
 						}
 					}
 				}
 			}
 
-			//System.out.println(" total probability: " + totalProbabilty);
+			//System.out.println(" total probability: " + totalProbability);
+			assert (totalProbability.compareTo(BigDecimal.ONE) <= 0);
 
 			//add the edges to the automaton
 			{
@@ -112,7 +128,7 @@ public class Projection {
 							if (tA == tB) {
 								//for all outgoing edges with the same activities
 								process(result, worklist, statePair2conjunctionState, itA, itB, projectionSourceState,
-										AToB, totalProbabilty, chooseProbability);
+										AToB, totalProbability, chooseProbability);
 							}
 						}
 					}
@@ -125,7 +141,7 @@ public class Projection {
 
 	public static void process(StochasticDeterministicFiniteAutomatonImpl result, TLongArrayStack worklist,
 			TLongIntMap statePair2conjunctionState, EdgeIterableOutgoing itA, EdgeIterableOutgoing itB,
-			int conjunctionSourceState, TShortShortMap AToB, double totalProbability,
+			int conjunctionSourceState, TShortShortMap AToB, BigDecimal totalProbability,
 			ChooseProbability chooseProbability) {
 		short tA = AToB.get(itA.getActivity());
 		short tB = itB.getActivity();
@@ -133,8 +149,9 @@ public class Projection {
 			long statePairTarget = StatePair.pack(itA.getTarget(), itB.getTarget());
 			int conjunctionTargetState = statePair2conjunctionState.get(statePairTarget);
 
-			double probability = chooseProbability.getProbability(itA.getProbability(), itB.getProbability())
-					/ totalProbability;
+			BigDecimal probability = chooseProbability.getProbability(itA.getProbability(), itB.getProbability())
+					.divide(totalProbability, result.getRoundingMathContext());
+			assert (totalProbability.compareTo(BigDecimal.ONE) <= 0);
 
 			if (conjunctionTargetState == statePair2conjunctionState.getNoEntryValue()) {
 				//this state pair did not exist yet

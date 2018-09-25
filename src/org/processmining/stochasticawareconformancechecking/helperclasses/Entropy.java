@@ -1,7 +1,10 @@
 package org.processmining.stochasticawareconformancechecking.helperclasses;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.util.Arrays;
 
+import org.nevec.rjm.BigDecimalMath;
 import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomaton;
 import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomaton.EdgeIterable;
 import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomaton.EdgeIterableIncoming;
@@ -17,17 +20,17 @@ public class Entropy {
 		//construct a stochastic automaton
 		StochasticDeterministicFiniteAutomaton sdfa = new StochasticDeterministicFiniteAutomatonImpl();
 		//sdfa.addEdge(sdfa.getInitialState(), (short) 5, 0.99998);
-		sdfa.addEdge(sdfa.getInitialState(), (short) 6, 0.00001);
-		sdfa.addEdge(sdfa.getInitialState(), (short) 7, 0.00001);
+		sdfa.addEdge(sdfa.getInitialState(), (short) 6, new BigDecimal("0.00001"));
+		sdfa.addEdge(sdfa.getInitialState(), (short) 7, new BigDecimal("0.00001"));
 
 		System.out.println(StochasticDeterministicFiniteAutomaton2Dot.toDot(sdfa));
 
-		double entropy = entropy(sdfa);
+		BigDecimal entropy = entropy(sdfa);
 
 		System.out.println("entropy: " + entropy);
 	}
 
-	public static double entropy(StochasticDeterministicFiniteAutomaton automaton)
+	public static BigDecimal entropy(StochasticDeterministicFiniteAutomaton automaton)
 			throws UnsupportedAutomatonException {
 
 		if (!CheckProbabilities.checkProbabilities(automaton)) {
@@ -38,25 +41,28 @@ public class Entropy {
 			throw new UnsupportedAutomatonException("Automaton contains death paths.");
 		}
 
-		double[] c = computeCs(automaton);
+		BigDecimal[] c = computeCs(automaton);
 
-		double result = 0;
-		double l2 = Math.log(2);
+		BigDecimal result = BigDecimal.ZERO;
+		BigDecimal l2 = BigDecimalMath.log(new BigDecimal("2"));
 
 		EdgeIterable it = automaton.getEdgesIterator();
+		MathContext mc = automaton.getRoundingMathContext();
 		while (it.hasNext()) {
 			it.next();
-			result += c[it.getSource()] * it.getProbability() * Math.log(it.getProbability());
+			//result += c[it.getSource()] * it.getProbability() * Math.log(it.getProbability());
+			BigDecimal nlogn = it.getProbability().multiply(BigDecimalMath.log(it.getProbability()), mc);
+			result = result.add(c[it.getSource()].multiply(nlogn), mc);
 		}
 
-		return -result / l2;
+		return result.divide(l2, mc).negate();
 	}
 
-	private static double[] computeCs(StochasticDeterministicFiniteAutomaton automaton) {
-		double[] previous = new double[automaton.getNumberOfStates()];
-		double[] current = new double[automaton.getNumberOfStates()];
-		double[] s;
-		Arrays.fill(current, 0);
+	private static BigDecimal[] computeCs(StochasticDeterministicFiniteAutomaton automaton) {
+		BigDecimal[] previous = new BigDecimal[automaton.getNumberOfStates()];
+		BigDecimal[] current = new BigDecimal[automaton.getNumberOfStates()];
+		BigDecimal[] s;
+		Arrays.fill(current, BigDecimal.ZERO);
 
 		EdgeIterableIncoming incomingEdges = automaton.getIncomingEdgesIterator(-1);
 
@@ -68,14 +74,15 @@ public class Entropy {
 				current = s;
 			}
 
-			Arrays.fill(current, 0);
-			current[automaton.getInitialState()] = 1;
+			Arrays.fill(current, BigDecimal.ZERO);
+			current[automaton.getInitialState()] = BigDecimal.ONE;
 			for (int q = 0; q < current.length; q++) {
 				incomingEdges.reset(q);
 
 				while (incomingEdges.hasNextSource()) {
 					int source = incomingEdges.nextSource();
-					current[q] += incomingEdges.getProbability() * previous[source];
+					current[q] = current[q].add(incomingEdges.getProbability().multiply(previous[source],
+							automaton.getRoundingMathContext()));
 				}
 			}
 		}

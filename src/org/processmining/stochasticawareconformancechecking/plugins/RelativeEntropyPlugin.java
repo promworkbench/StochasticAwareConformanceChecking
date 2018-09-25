@@ -1,5 +1,7 @@
 package org.processmining.stochasticawareconformancechecking.plugins;
 
+import java.math.BigDecimal;
+
 import org.deckfour.xes.model.XLog;
 import org.processmining.contexts.uitopia.annotations.UITopiaVariant;
 import org.processmining.framework.plugin.PluginContext;
@@ -32,7 +34,7 @@ public class RelativeEntropyPlugin {
 			StochasticDeterministicFiniteAutomatonMapped<String> automatonA,
 			StochasticDeterministicFiniteAutomatonMapped<String> automatonB)
 			throws CloneNotSupportedException, UnsupportedAutomatonException {
-		final Pair<Double, Double> entropy = RelativeEntropy.relativeEntropy(automatonA, automatonB);
+		final Pair<BigDecimal, BigDecimal> entropy = RelativeEntropy.relativeEntropy(automatonA, automatonB);
 		return new HTMLToString() {
 			public String toHTMLString(boolean includeHTMLTags) {
 				return "recall: " + entropy.getA() + "<br>precision: " + entropy.getB();
@@ -61,7 +63,7 @@ public class RelativeEntropyPlugin {
 				.guessInitialMarking(pnB);
 		StochasticDeterministicFiniteAutomatonMapped<String> automatonB = StochasticPetriNet2StochasticDeterministicFiniteAutomaton
 				.convert(pnB, initialMarking);
-		final Pair<Double, Double> entropy = RelativeEntropy.relativeEntropy(automatonA, automatonB);
+		final Pair<BigDecimal, BigDecimal> entropy = RelativeEntropy.relativeEntropy(automatonA, automatonB);
 		return new HTMLToString() {
 			public String toHTMLString(boolean includeHTMLTags) {
 				return "recall: " + entropy.getA() + "<br>precision: " + entropy.getB();

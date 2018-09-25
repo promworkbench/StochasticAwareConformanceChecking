@@ -1,29 +1,36 @@
 package org.processmining.stochasticawareconformancechecking.automata;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 import gnu.trove.TCollections;
-import gnu.trove.iterator.TDoubleIterator;
 import gnu.trove.iterator.TIntIterator;
 import gnu.trove.iterator.TShortIterator;
 import gnu.trove.list.TIntList;
-import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.list.array.TShortArrayList;
 
 public class StochasticDeterministicFiniteAutomatonImpl implements StochasticDeterministicFiniteAutomaton {
+
+	public static final MathContext defaultRoundingMathContext = new MathContext(20, RoundingMode.HALF_EVEN);
 
 	private int maxState;
 
 	private TIntArrayList sources;
 	private TIntArrayList targets;
 	private TShortArrayList activities;
-	private TDoubleArrayList probabilities;
+	private List<BigDecimal> probabilities;
 
 	public StochasticDeterministicFiniteAutomatonImpl() {
 		maxState = 0;
 		sources = new TIntArrayList();
 		targets = new TIntArrayList();
 		activities = new TShortArrayList();
-		probabilities = new TDoubleArrayList();
+		probabilities = new ArrayList<>();
 	}
 
 	/*
@@ -99,7 +106,7 @@ public class StochasticDeterministicFiniteAutomatonImpl implements StochasticDet
 	}
 
 	@Override
-	public void addEdge(int source, short activity, int target, double probability) {
+	public void addEdge(int source, short activity, int target, BigDecimal probability) {
 		assert (source >= 0);
 		assert (target >= 0);
 
@@ -115,18 +122,18 @@ public class StochasticDeterministicFiniteAutomatonImpl implements StochasticDet
 			sources.insert(~from, source);
 			targets.insert(~from, target);
 			activities.insert(~from, activity);
-			probabilities.insert(~from, probability);
+			probabilities.add(~from, probability);
 		}
 	}
 
 	@Override
-	public int addEdge(int source, short activity, double probability) {
+	public int addEdge(int source, short activity, BigDecimal probability) {
 		assert (source >= 0);
 
 		int from = binarySearch(source, activity);
 		if (from >= 0) {
 			//edge already present; return target
-			probabilities.set(from, probabilities.get(from) + probability);
+			probabilities.set(from, probabilities.get(from).add(probability));
 			return targets.get(from);
 		} else {
 			//edge not present; insert
@@ -134,7 +141,7 @@ public class StochasticDeterministicFiniteAutomatonImpl implements StochasticDet
 			sources.insert(~from, source);
 			targets.insert(~from, target);
 			activities.insert(~from, activity);
-			probabilities.insert(~from, probability);
+			probabilities.add(~from, probability);
 			return target;
 		}
 	}
@@ -152,6 +159,11 @@ public class StochasticDeterministicFiniteAutomatonImpl implements StochasticDet
 	@Override
 	public int getNumberOfStates() {
 		return maxState + 1;
+	}
+
+	@Override
+	public MathContext getRoundingMathContext() {
+		return defaultRoundingMathContext;
 	}
 
 	/*
@@ -196,7 +208,7 @@ public class StochasticDeterministicFiniteAutomatonImpl implements StochasticDet
 
 		result.activities = new TShortArrayList(this.activities);
 		result.maxState = this.maxState;
-		result.probabilities = new TDoubleArrayList(this.probabilities);
+		result.probabilities = new ArrayList<>(this.probabilities);
 		result.sources = new TIntArrayList(this.sources);
 		result.targets = new TIntArrayList(this.targets);
 
@@ -207,11 +219,11 @@ public class StochasticDeterministicFiniteAutomatonImpl implements StochasticDet
 		private TIntIterator itSources = sources.iterator();
 		private TIntIterator itTargets = targets.iterator();
 		private TShortIterator itActivities = activities.iterator();
-		private TDoubleIterator itProbabilities = probabilities.iterator();
+		private Iterator<BigDecimal> itProbabilities = probabilities.iterator();
 		private int source;
 		private int target;
 		private short activity;
-		private double probability;
+		private BigDecimal probability;
 
 		public boolean hasNext() {
 			return itSources.hasNext();
@@ -236,7 +248,7 @@ public class StochasticDeterministicFiniteAutomatonImpl implements StochasticDet
 			return activity;
 		}
 
-		public double getProbability() {
+		public BigDecimal getProbability() {
 			return probability;
 		}
 
@@ -280,7 +292,7 @@ public class StochasticDeterministicFiniteAutomatonImpl implements StochasticDet
 			return sources.get(current);
 		}
 
-		public double getProbability() {
+		public BigDecimal getProbability() {
 			return probabilities.get(current);
 		}
 
@@ -342,7 +354,7 @@ public class StochasticDeterministicFiniteAutomatonImpl implements StochasticDet
 			return activities.get(current);
 		}
 
-		public double getProbability() {
+		public BigDecimal getProbability() {
 			return probabilities.get(current);
 		}
 
@@ -374,14 +386,18 @@ public class StochasticDeterministicFiniteAutomatonImpl implements StochasticDet
 			return getActivity();
 		}
 
-		public double nextProbability() {
+		public BigDecimal nextProbability() {
 			current = next;
 			next++;
 			return getProbability();
 		}
 
-		public void setProbability(double probability) {
+		public void setProbability(BigDecimal probability) {
 			probabilities.set(current, probability);
+		}
+
+		public MathContext getRoundingMathContext() {
+			return defaultRoundingMathContext;
 		}
 	}
 

@@ -1,5 +1,8 @@
 package org.processmining.stochasticawareconformancechecking.automata;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
+
 public interface StochasticDeterministicFiniteAutomaton extends Cloneable {
 
 	int getInitialState();
@@ -29,7 +32,7 @@ public interface StochasticDeterministicFiniteAutomaton extends Cloneable {
 	 * @param target
 	 * @param probability
 	 */
-	int addEdge(int source, short activity, double probability);
+	int addEdge(int source, short activity, BigDecimal probability);
 
 	/**
 	 * Adds an edge to the graph. Returns the (possibly new) target state. If
@@ -41,9 +44,11 @@ public interface StochasticDeterministicFiniteAutomaton extends Cloneable {
 	 * @param probability
 	 * @return
 	 */
-	void addEdge(int source, short activity, int target, double probability);
+	void addEdge(int source, short activity, int target, BigDecimal probability);
 
 	int addState();
+
+	public MathContext getRoundingMathContext();
 
 	public StochasticDeterministicFiniteAutomaton clone() throws CloneNotSupportedException;
 
@@ -59,7 +64,7 @@ public interface StochasticDeterministicFiniteAutomaton extends Cloneable {
 
 		public short getActivity();
 
-		public double getProbability();
+		public BigDecimal getProbability();
 
 		public void remove();
 	}
@@ -74,7 +79,7 @@ public interface StochasticDeterministicFiniteAutomaton extends Cloneable {
 
 		public int getSource();
 
-		public double getProbability();
+		public BigDecimal getProbability();
 
 		public short getActivity();
 	}
@@ -95,7 +100,7 @@ public interface StochasticDeterministicFiniteAutomaton extends Cloneable {
 
 		public short getActivity();
 
-		public double getProbability();
+		public BigDecimal getProbability();
 
 		public int nextEdge();
 
@@ -105,8 +110,10 @@ public interface StochasticDeterministicFiniteAutomaton extends Cloneable {
 
 		public short nextActivity();
 
-		public double nextProbability();
+		public BigDecimal nextProbability();
 
-		public void setProbability(double probability);
+		public void setProbability(BigDecimal probability);
+
+		public MathContext getRoundingMathContext();
 	}
 }
