@@ -12,8 +12,8 @@ public class RelativeEntropy {
 
 	public static void main(String... args) throws CloneNotSupportedException, UnsupportedAutomatonException {
 
-		int modelTraces = 1;
-		BigDecimal loopbackprobability = BigDecimal.ZERO;
+		int modelTraces = 2;
+		BigDecimal loopbackprobability = new BigDecimal("0.2");
 
 		//log
 		StochasticDeterministicFiniteAutomatonMappedImpl<String> log = new StochasticDeterministicFiniteAutomatonMappedImpl<>();
