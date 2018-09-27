@@ -20,8 +20,8 @@ public class Entropy {
 		//construct a stochastic automaton
 		StochasticDeterministicFiniteAutomaton sdfa = new StochasticDeterministicFiniteAutomatonImpl();
 		//sdfa.addEdge(sdfa.getInitialState(), (short) 5, 0.99998);
-		sdfa.addEdge(sdfa.getInitialState(), (short) 6, new BigDecimal("0.00001"));
-		sdfa.addEdge(sdfa.getInitialState(), (short) 7, new BigDecimal("0.00001"));
+		sdfa.addEdge(sdfa.getInitialState(), (short) 6, new BigDecimal("0.75"));
+		sdfa.addEdge(sdfa.getInitialState(), (short) 7, new BigDecimal("0.25"));
 
 		System.out.println(StochasticDeterministicFiniteAutomaton2Dot.toDot(sdfa));
 

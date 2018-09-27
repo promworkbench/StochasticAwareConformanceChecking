@@ -1,4 +1,4 @@
-package org.processmining.stochasticawareconformancechecking.automata;
+package org.processmining.stochasticawareconformancechecking.helperclasses;
 
 import java.math.BigDecimal;
 import java.util.ArrayDeque;
@@ -13,7 +13,8 @@ import org.processmining.models.graphbased.directed.petrinet.elements.Transition
 import org.processmining.models.semantics.IllegalTransitionException;
 import org.processmining.models.semantics.petrinet.Marking;
 import org.processmining.models.semantics.petrinet.impl.EfficientStochasticNetSemanticsImpl;
-import org.processmining.stochasticawareconformancechecking.helperclasses.UnsupportedPetriNetException;
+import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomatonMapped;
+import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomatonMappedImpl;
 
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.custom_hash.TObjectIntCustomHashMap;
