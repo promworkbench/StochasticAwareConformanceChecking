@@ -71,6 +71,7 @@ public class Entropy {
 		 * states.
 		 */
 		BitSet visited = new BitSet(automaton.getNumberOfStates());
+		visited.set(automaton.getInitialState());
 		TIntArrayStack worklist = new TIntArrayStack();
 		worklist.push(automaton.getInitialState());
 		EdgeIterableOutgoing it2 = automaton.getOutgoingEdgesIterator(automaton.getInitialState());
