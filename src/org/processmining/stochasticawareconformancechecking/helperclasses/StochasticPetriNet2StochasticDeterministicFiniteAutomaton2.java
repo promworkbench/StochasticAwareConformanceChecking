@@ -89,20 +89,24 @@ public class StochasticPetriNet2StochasticDeterministicFiniteAutomaton2 {
 			Map<Transition, Pair<short[], BigDecimal>> enabledTransitions = getEnabledTransitions(s, marking,
 					result.getRoundingMathContext(), result);
 
+			System.out.println(enabledTransitions);
+
 			//second, put the transitions into the automaton
 			for (Entry<Transition, Pair<short[], BigDecimal>> pair : enabledTransitions.entrySet()) {
 				Transition t = pair.getKey();
 				short[] newMarking = pair.getValue().getA();
 				short activity = result.transform(t.getLabel());
 				BigDecimal probability = pair.getValue().getB();
-				int target = marking2state.get(newMarking);
-				if (target == marking2state.getNoEntryValue()) {
-					target = result.addEdge(source, activity, probability);
-					marking2state.put(newMarking, target);
+				if (StochasticUtils.isLargerThanZero(result, probability)) {
+					int target = marking2state.get(newMarking);
+					if (target == marking2state.getNoEntryValue()) {
+						target = result.addEdge(source, activity, probability);
+						marking2state.put(newMarking, target);
 
-					worklist.add(newMarking);
-				} else {
-					result.addEdge(source, activity, target, probability);
+						worklist.add(newMarking);
+					} else {
+						result.addEdge(source, activity, target, probability);
+					}
 				}
 			}
 		}
@@ -187,10 +191,11 @@ public class StochasticPetriNet2StochasticDeterministicFiniteAutomaton2 {
 			StochasticDeterministicFiniteAutomaton automaton) {
 		BitSet prefixMatches = new BitSet(paths.size());
 		prefixMatches.set(0, paths.size());
+		Transition[] path = paths.get(pathIndex);
 
 		BigDecimal result = BigDecimal.ONE;
 
-		for (int round = 0; round < paths.get(pathIndex).length; round++) {
+		for (int round = 0; round < path.length; round++) {
 
 			//compute the total sum of this round
 			BigDecimal sumWeightRound = BigDecimal.ZERO;
@@ -200,31 +205,33 @@ public class StochasticPetriNet2StochasticDeterministicFiniteAutomaton2 {
 				for (int pathIndex2 = prefixMatches.nextSetBit(0); pathIndex2 >= 0; pathIndex2 = prefixMatches
 						.nextSetBit(pathIndex2 + 1)) {
 					enabledTransitions.add(paths.get(pathIndex2)[round]);
-					numberOfEnabledTransitions++;
 				}
 				for (Transition t : enabledTransitions) {
 					sumWeightRound = sumWeightRound.add(new BigDecimal(((TimedTransition) t).getWeight()));
+					numberOfEnabledTransitions++;
 				}
 			}
 
 			//add the probability of this step to the final result
 			{
-				Transition t = paths.get(pathIndex)[round];
+				Transition t = path[round];
 				if (StochasticUtils.isLargerThanZero(automaton, sumWeightRound)) {
 					BigDecimal probabilityThisStep = new BigDecimal(((TimedTransition) t).getWeight())
 							.divide(sumWeightRound, mc);
 					result = result.multiply(probabilityThisStep, mc);
 				} else {
 					//if the sum weight is zero, then all transitions have no probabilities. Distribute evenly.
-					result = BigDecimal.ONE.divide(new BigDecimal(numberOfEnabledTransitions),
+					BigDecimal probabilityThisStep = BigDecimal.ONE.divide(new BigDecimal(numberOfEnabledTransitions),
 							automaton.getRoundingMathContext());
+					result = result.multiply(probabilityThisStep, mc);
 				}
 			}
 
 			//next, limit the paths that are not prefixes of pathIndex
 			for (int pathIndex2 = prefixMatches.nextSetBit(0); pathIndex2 >= 0; pathIndex2 = prefixMatches
 					.nextSetBit(pathIndex2 + 1)) {
-				if (!paths.get(pathIndex2)[round].getLabel().equals(paths.get(pathIndex)[round].getLabel())) {
+				if (!paths.get(pathIndex2)[round].equals(path[round]) || paths.get(pathIndex2).length == round + 1) {
+					//if this round's transition is not the same, or the path is too short for a next round, exclude it.
 					prefixMatches.clear(pathIndex2);
 				}
 			}
