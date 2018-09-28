@@ -12,7 +12,7 @@ import org.processmining.models.semantics.IllegalTransitionException;
 import org.processmining.models.semantics.petrinet.Marking;
 import org.processmining.plugins.InductiveMiner.plugins.dialogs.IMMiningDialog;
 import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomatonMapped;
-import org.processmining.stochasticawareconformancechecking.helperclasses.StochasticPetriNet2StochasticDeterministicFiniteAutomaton;
+import org.processmining.stochasticawareconformancechecking.helperclasses.StochasticPetriNet2StochasticDeterministicFiniteAutomaton2;
 import org.processmining.stochasticawareconformancechecking.helperclasses.UnsupportedPetriNetException;
 
 public class StochasticPetriNet2StochasticDeterministicFiniteAutomatonPlugin {
@@ -25,7 +25,7 @@ public class StochasticPetriNet2StochasticDeterministicFiniteAutomatonPlugin {
 	public StochasticDeterministicFiniteAutomatonMapped<String> convert(final PluginContext context, StochasticNet net)
 			throws IllegalTransitionException, UnsupportedPetriNetException {
 		Marking initialMarking = guessInitialMarking(net);
-		return StochasticPetriNet2StochasticDeterministicFiniteAutomaton.convert(net, initialMarking);
+		return StochasticPetriNet2StochasticDeterministicFiniteAutomaton2.convert(net, initialMarking);
 	}
 
 	public static Marking guessInitialMarking(Petrinet net) {

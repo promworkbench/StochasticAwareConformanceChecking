@@ -30,9 +30,13 @@ public class StochasticUtils {
 		BigDecimal termination = getTerminationProbability(automaton, state);
 		return termination.compareTo(getEpsilon(automaton)) > 0;
 	}
-	
+
 	public static boolean isLargerThanZero(EdgeIterableOutgoing it, BigDecimal value) {
 		return value.compareTo(getEpsilon(it)) > 0;
+	}
+
+	public static boolean isLargerThanZero(StochasticDeterministicFiniteAutomaton automaton, BigDecimal value) {
+		return value.compareTo(getEpsilon(automaton)) > 0;
 	}
 
 	public static boolean hasTerminationProbability(EdgeIterableOutgoing it, int state) {

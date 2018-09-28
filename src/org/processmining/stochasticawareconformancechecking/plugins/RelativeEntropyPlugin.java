@@ -19,7 +19,7 @@ import org.processmining.plugins.InductiveMiner.plugins.dialogs.IMMiningDialog;
 import org.processmining.stochasticawareconformancechecking.automata.Log2StochasticDeterministicFiniteAutomaton;
 import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomatonMapped;
 import org.processmining.stochasticawareconformancechecking.helperclasses.RelativeEntropy;
-import org.processmining.stochasticawareconformancechecking.helperclasses.StochasticPetriNet2StochasticDeterministicFiniteAutomaton;
+import org.processmining.stochasticawareconformancechecking.helperclasses.StochasticPetriNet2StochasticDeterministicFiniteAutomaton2;
 import org.processmining.stochasticawareconformancechecking.helperclasses.UnsupportedAutomatonException;
 import org.processmining.stochasticawareconformancechecking.helperclasses.UnsupportedLogException;
 import org.processmining.stochasticawareconformancechecking.helperclasses.UnsupportedPetriNetException;
@@ -61,7 +61,7 @@ public class RelativeEntropyPlugin {
 
 		Marking initialMarking = StochasticPetriNet2StochasticDeterministicFiniteAutomatonPlugin
 				.guessInitialMarking(pnB);
-		StochasticDeterministicFiniteAutomatonMapped<String> automatonB = StochasticPetriNet2StochasticDeterministicFiniteAutomaton
+		StochasticDeterministicFiniteAutomatonMapped<String> automatonB = StochasticPetriNet2StochasticDeterministicFiniteAutomaton2
 				.convert(pnB, initialMarking);
 		final Pair<BigDecimal, BigDecimal> entropy = RelativeEntropy.relativeEntropy(automatonA, automatonB);
 		return new HTMLToString() {
