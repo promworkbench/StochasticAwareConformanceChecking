@@ -17,7 +17,7 @@ import gnu.trove.stack.array.TIntArrayStack;
 
 public class Entropy {
 
-	public static int iterations = 1000;
+	public static int checkEqualityEveryIterations = 10;
 
 	public static void main(String... args) throws UnsupportedAutomatonException {
 
@@ -106,29 +106,44 @@ public class Entropy {
 		BigDecimal[] s;
 		Arrays.fill(current, BigDecimal.ZERO);
 
+		BigDecimal epsilon = StochasticUtils.getEpsilon(automaton);
+
 		EdgeIterableIncoming incomingEdges = automaton.getIncomingEdgesIterator(-1);
 
-		for (int iteration = 0; iteration < iterations; iteration++) {
-			//swap the arrays
-			{
-				s = previous;
-				previous = current;
-				current = s;
-			}
+		do {
+			System.out.println(" new iteration");
+			for (int iteration = 0; iteration < checkEqualityEveryIterations; iteration++) {
 
-			Arrays.fill(current, BigDecimal.ZERO);
-			current[automaton.getInitialState()] = BigDecimal.ONE;
-			for (int q = 0; q < current.length; q++) {
-				incomingEdges.reset(q);
+				//swap the arrays
+				{
+					s = previous;
+					previous = current;
+					current = s;
+				}
 
-				while (incomingEdges.hasNextSource()) {
-					int source = incomingEdges.nextSource();
-					current[q] = current[q].add(incomingEdges.getProbability().multiply(previous[source],
-							automaton.getRoundingMathContext()));
+				Arrays.fill(current, BigDecimal.ZERO);
+				current[automaton.getInitialState()] = BigDecimal.ONE;
+				for (int q = 0; q < current.length; q++) {
+					incomingEdges.reset(q);
+
+					while (incomingEdges.hasNextSource()) {
+						int source = incomingEdges.nextSource();
+						current[q] = current[q].add(incomingEdges.getProbability().multiply(previous[source],
+								automaton.getRoundingMathContext()));
+					}
 				}
 			}
-		}
+		} while (!areEqual(previous, current, epsilon));
 
 		return current;
+	}
+
+	public static boolean areEqual(BigDecimal[] previous, BigDecimal[] current, BigDecimal epsilon) {
+		for (int i = 0; i < previous.length; i++) {
+			if (previous[i].subtract(current[i]).abs().compareTo(epsilon) > 0) {
+				return false;
+			}
+		}
+		return true;
 	}
 }

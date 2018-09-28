@@ -89,7 +89,7 @@ public class StochasticPetriNet2StochasticDeterministicFiniteAutomaton2 {
 			Map<Transition, Pair<short[], BigDecimal>> enabledTransitions = getEnabledTransitions(s, marking,
 					result.getRoundingMathContext(), result);
 
-			System.out.println(enabledTransitions);
+			//System.out.println(enabledTransitions);
 
 			//second, put the transitions into the automaton
 			for (Entry<Transition, Pair<short[], BigDecimal>> pair : enabledTransitions.entrySet()) {

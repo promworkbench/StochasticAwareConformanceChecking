@@ -90,11 +90,19 @@ public class RelativeEntropy {
 		MakeAutomatonChoiceFul.convert(a); //add a small choice to each automaton to prevent zero-entropy
 		MakeAutomatonChoiceFul.convert(b);//add a small choice to each automaton to prevent zero-entropy
 
+		System.out.println("projecting...");
 		StochasticDeterministicFiniteAutomaton projection = Projection.project(a, b, ChooseProbability.Minimum);
 
-		BigDecimal eA = Entropy.entropy(a);
-		BigDecimal eB = Entropy.entropy(b);
+		System.out.println("computing entropy projection...");
 		BigDecimal eP = Entropy.entropy(projection);
+		if (eP.compareTo(BigDecimal.ZERO) == 0) {
+			return Pair.of(BigDecimal.ZERO, BigDecimal.ZERO);
+		}
+		
+		System.out.println("computing entropy A...");
+		BigDecimal eA = Entropy.entropy(a);
+		System.out.println("computing entropy B...");
+		BigDecimal eB = Entropy.entropy(b);
 
 		return Pair.of(eP.divide(eA, a.getRoundingMathContext()), eP.divide(eB, a.getRoundingMathContext()));
 	}

@@ -64,7 +64,9 @@ public class RelativeEntropyPlugin {
 		StochasticDeterministicFiniteAutomatonMapped<String> automatonB = StochasticPetriNet2StochasticDeterministicFiniteAutomaton2
 				.convert(pnB, initialMarking);
 		final Pair<BigDecimal, BigDecimal> entropy = RelativeEntropy.relativeEntropy(automatonA, automatonB);
-		final Pair<BigDecimal, BigDecimal> entropyHalf = RelativeEntropy.relativeEntropyHalf(automatonA, automatonB);
+		//final Pair<BigDecimal, BigDecimal> entropyHalf = RelativeEntropy.relativeEntropyHalf(automatonA, automatonB);
+		final Pair<BigDecimal, BigDecimal> entropyHalf = Pair.of(new BigDecimal("-100"), new BigDecimal("-100"));
+		
 		return new HTMLToString() {
 			public String toHTMLString(boolean includeHTMLTags) {
 				return "recall: " + entropy.getA() + "<br>precision: " + entropy.getB() + "<br>single-sided recall: "
