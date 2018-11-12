@@ -13,7 +13,7 @@
 	<property name="author" value="Sander Leemans and Artmen Polyvyanyy" />
 	<property name="organization" value="Queensland University of Technology" />
 	<property name="description" value="StochasticAwareConformanceChecking" />
-	<property name="license" value="L-GPL" />
+	<property name="license" value="GPL" />
 	<property name="logo" value="prom_subtitle_hat_300.png" />
 
 	<property name="ivy.lib.dir" value="ivy" />
