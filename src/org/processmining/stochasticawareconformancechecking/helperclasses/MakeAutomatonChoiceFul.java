@@ -1,7 +1,5 @@
 package org.processmining.stochasticawareconformancechecking.helperclasses;
 
-import java.math.BigDecimal;
-
 import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomatonMapped;
 
 /**
@@ -17,7 +15,7 @@ public class MakeAutomatonChoiceFul {
 	public static void convert(StochasticDeterministicFiniteAutomatonMapped<String> automaton) {
 		short escapeActivityIndex = automaton.transform(escapeActivity);
 		int escapeState = -1;
-		BigDecimal epsilon = StochasticUtils.getEpsilon(automaton);
+		double epsilon = StochasticUtils.getMeaningfulepsilon();
 
 		for (int state = 0; state < automaton.getNumberOfStates(); state++) {
 

@@ -1,7 +1,5 @@
 package org.processmining.stochasticawareconformancechecking.automata;
 
-import java.math.BigDecimal;
-
 import org.deckfour.xes.classification.XEventClassifier;
 import org.deckfour.xes.model.XEvent;
 import org.deckfour.xes.model.XLog;
@@ -10,8 +8,8 @@ import org.processmining.framework.plugin.ProMCanceller;
 import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomaton.EdgeIterableOutgoing;
 import org.processmining.stochasticawareconformancechecking.helperclasses.UnsupportedLogException;
 
-import gnu.trove.map.TIntObjectMap;
-import gnu.trove.map.hash.TIntObjectHashMap;
+import gnu.trove.map.TIntDoubleMap;
+import gnu.trove.map.hash.TIntDoubleHashMap;
 
 public class Log2StochasticDeterministicFiniteAutomaton {
 	public static StochasticDeterministicFiniteAutomatonMapped<String> convert(XLog log, XEventClassifier classifier,
@@ -32,7 +30,7 @@ public class Log2StochasticDeterministicFiniteAutomaton {
 		 * normalise the numbers in the automaton.
 		 */
 
-		TIntObjectMap<BigDecimal> state2endingTraces = new TIntObjectHashMap<>(10, 0.5f, -1);
+		TIntDoubleMap state2endingTraces = new TIntDoubleHashMap(10, 0.5f, -1, 0);
 
 		for (XTrace trace : log) {
 			addTrace(result, state2endingTraces, transformTrace(result, trace, classifier), canceller);
@@ -44,17 +42,16 @@ public class Log2StochasticDeterministicFiniteAutomaton {
 		EdgeIterableOutgoing it = result.getOutgoingEdgesIterator(-1);
 		for (int state = 0; state < result.getNumberOfStates(); state++) {
 			//first, compute the sum
-			BigDecimal sum = state2endingTraces.get(state);
-			sum = sum == null ? BigDecimal.ZERO : sum; 
+			double sum = state2endingTraces.get(state);
 			it.reset(state);
 			while (it.hasNext()) {
-				sum = sum.add(it.nextProbability());
+				sum += it.nextProbability();
 			}
 
 			//second, normalise
 			it.reset(state);
 			while (it.hasNext()) {
-				it.setProbability(it.nextProbability().divide(sum, it.getRoundingMathContext()));
+				it.setProbability(it.nextProbability() / sum);
 			}
 		}
 
@@ -73,22 +70,18 @@ public class Log2StochasticDeterministicFiniteAutomaton {
 	}
 
 	public static int addTrace(StochasticDeterministicFiniteAutomatonMapped<String> automaton,
-			TIntObjectMap<BigDecimal> state2endingTraces, short[] trace, ProMCanceller canceller) {
+			TIntDoubleMap state2endingTraces, short[] trace, ProMCanceller canceller) {
 		int state = automaton.getInitialState();
 		for (int i = 0; i < trace.length; i++) {
 			short activity = trace[i];
-			state = automaton.addEdge(state, activity, BigDecimal.ONE);
+			state = automaton.addEdge(state, activity, 1);
 
 			if (canceller.isCancelled()) {
 				return -1;
 			}
 		}
 
-		if (!state2endingTraces.containsKey(state)) {
-			state2endingTraces.put(state, BigDecimal.ONE);
-		} else {
-			state2endingTraces.put(state, state2endingTraces.get(state).add(BigDecimal.ONE));
-		}
+		state2endingTraces.put(state, state2endingTraces.get(state) + 1);
 
 		return state;
 	}

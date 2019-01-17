@@ -34,7 +34,7 @@ public class RelativeEntropyPlugin {
 			StochasticDeterministicFiniteAutomatonMapped<String> automatonA,
 			StochasticDeterministicFiniteAutomatonMapped<String> automatonB)
 			throws CloneNotSupportedException, UnsupportedAutomatonException {
-		final Pair<BigDecimal, BigDecimal> entropy = RelativeEntropy.relativeEntropy(automatonA, automatonB);
+		final Pair<Double, Double> entropy = RelativeEntropy.relativeEntropy(automatonA, automatonB);
 		return new HTMLToString() {
 			public String toHTMLString(boolean includeHTMLTags) {
 				return "recall: " + entropy.getA() + "<br>precision: " + entropy.getB();
@@ -63,9 +63,9 @@ public class RelativeEntropyPlugin {
 				.guessInitialMarking(pnB);
 		StochasticDeterministicFiniteAutomatonMapped<String> automatonB = StochasticPetriNet2StochasticDeterministicFiniteAutomaton2
 				.convert(pnB, initialMarking);
-		final Pair<BigDecimal, BigDecimal> entropy = RelativeEntropy.relativeEntropy(automatonA, automatonB);
-		//final Pair<BigDecimal, BigDecimal> entropyHalf = RelativeEntropy.relativeEntropyHalf(automatonA, automatonB);
-		final Pair<BigDecimal, BigDecimal> entropyHalf = Pair.of(new BigDecimal("-100"), new BigDecimal("-100"));
+		//final Pair<Double, Double> entropy = RelativeEntropy.relativeEntropy(automatonA, automatonB);
+		final Pair<Double, Double> entropyHalf = RelativeEntropy.relativeEntropyHalf(automatonA, automatonB);
+		final Pair<BigDecimal, BigDecimal> entropy = Pair.of(new BigDecimal("-100"), new BigDecimal("-100"));
 		
 		return new HTMLToString() {
 			public String toHTMLString(boolean includeHTMLTags) {

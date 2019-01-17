@@ -1,7 +1,5 @@
 package org.processmining.stochasticawareconformancechecking.helperclasses;
 
-import java.math.BigDecimal;
-
 import org.processmining.plugins.InductiveMiner.Pair;
 import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomaton;
 import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomatonMapped;
@@ -12,15 +10,20 @@ public class RelativeEntropy {
 
 	public static void main(String... args) throws CloneNotSupportedException, UnsupportedAutomatonException {
 
+		for (int logTraces = 1; logTraces <= 100; logTraces++) {
+			for (double loopBack = 0; loopBack < 1; loopBack += 0.01) {
+				
+			}
+		}
 		int modelTraces = 2;
-		BigDecimal loopbackprobability = new BigDecimal("0.2");
+		double loopbackprobability = 0.2;
 
 		//log
 		StochasticDeterministicFiniteAutomatonMappedImpl<String> log = new StochasticDeterministicFiniteAutomatonMappedImpl<>();
 		{
 			int traces = 100;
 
-			BigDecimal p = BigDecimal.ONE.divide(new BigDecimal(traces), log.getRoundingMathContext());
+			double p = 1.0 / traces;
 			int a = 0;
 			int finalState = log.addEdge(log.getInitialState(), log.transform("a" + a), p);
 			for (a = 1; a < traces; a++) {
@@ -34,7 +37,7 @@ public class RelativeEntropy {
 			int finalState = 0;
 			if (modelTraces > 0) {
 				int a = 0;
-				BigDecimal p = BigDecimal.ONE.divide(new BigDecimal(modelTraces), log.getRoundingMathContext());
+				double p = 1.0 / modelTraces;
 				finalState = model.addEdge(log.getInitialState(), model.transform("a" + a), p);
 				for (a = 1; a < modelTraces; a++) {
 					model.addEdge(model.getInitialState(), model.transform("a" + a), finalState, p);
@@ -44,8 +47,8 @@ public class RelativeEntropy {
 			model.addEdge(finalState, model.transform("loopback"), model.getInitialState(), loopbackprobability);
 		}
 
-		Pair<BigDecimal, BigDecimal> entropy = relativeEntropy(log, model);
-		Pair<BigDecimal, BigDecimal> entropyHalf = relativeEntropyHalf(log, model);
+		Pair<Double, Double> entropy = relativeEntropy(log, model);
+		Pair<Double, Double> entropyHalf = relativeEntropyHalf(log, model);
 
 		System.out.println("model traces:         " + modelTraces);
 		System.out.println("loopback probability: " + loopbackprobability);
@@ -62,8 +65,7 @@ public class RelativeEntropy {
 	 * @throws CloneNotSupportedException
 	 * @throws UnsupportedAutomatonException
 	 */
-	public static <X> Pair<BigDecimal, BigDecimal> relativeEntropy(
-			StochasticDeterministicFiniteAutomatonMapped<String> a,
+	public static Pair<Double, Double> relativeEntropy(StochasticDeterministicFiniteAutomatonMapped<String> a,
 			StochasticDeterministicFiniteAutomatonMapped<String> b)
 			throws CloneNotSupportedException, UnsupportedAutomatonException {
 
@@ -73,20 +75,20 @@ public class RelativeEntropy {
 		if (!CheckProbabilities.checkProbabilities(b)) {
 			throw new UnsupportedAutomatonException("Automaton's probabilities are out of range.");
 		}
-		
+
 		a = a.clone();
 		b = b.clone();
 		FilterZeroEdges.filter(a); //filter edges that have zero weight
 		FilterZeroEdges.filter(b); //filter edges that have zero weight
-		
-		//check for death paths (should be done after zero-edge filtering
+
+		//check for death paths (should be done after zero-edge filtering)
 		if (CheckDeadPaths.hasDeathPaths(a)) {
 			throw new UnsupportedAutomatonException("Automaton contains death paths.");
 		}
 		if (CheckDeadPaths.hasDeathPaths(b)) {
 			throw new UnsupportedAutomatonException("Automaton contains death paths.");
 		}
-		
+
 		MakeAutomatonChoiceFul.convert(a); //add a small choice to each automaton to prevent zero-entropy
 		MakeAutomatonChoiceFul.convert(b);//add a small choice to each automaton to prevent zero-entropy
 
@@ -94,17 +96,16 @@ public class RelativeEntropy {
 		StochasticDeterministicFiniteAutomaton projection = Projection.project(a, b, ChooseProbability.Minimum);
 
 		System.out.println("computing entropy projection...");
-		BigDecimal eP = Entropy.entropy(projection);
-		if (eP.compareTo(BigDecimal.ZERO) == 0) {
-			return Pair.of(BigDecimal.ZERO, BigDecimal.ZERO);
-		}
-		
+		double eP = Entropy.entropy(projection);
+		System.out.println(eP);
 		System.out.println("computing entropy A...");
-		BigDecimal eA = Entropy.entropy(a);
+		double eA = Entropy.entropy(a);
+		System.out.println(eA);
 		System.out.println("computing entropy B...");
-		BigDecimal eB = Entropy.entropy(b);
+		double eB = Entropy.entropy(b);
+		System.out.println(eB);
 
-		return Pair.of(eP.divide(eA, a.getRoundingMathContext()), eP.divide(eB, a.getRoundingMathContext()));
+		return Pair.of(eP / eA, eP / eB);
 	}
 
 	/**
@@ -117,8 +118,7 @@ public class RelativeEntropy {
 	 * @throws CloneNotSupportedException
 	 * @throws UnsupportedAutomatonException
 	 */
-	public static <X> Pair<BigDecimal, BigDecimal> relativeEntropyHalf(
-			StochasticDeterministicFiniteAutomatonMapped<String> a,
+	public static Pair<Double, Double> relativeEntropyHalf(StochasticDeterministicFiniteAutomatonMapped<String> a,
 			StochasticDeterministicFiniteAutomatonMapped<String> b)
 			throws CloneNotSupportedException, UnsupportedAutomatonException {
 
@@ -149,11 +149,11 @@ public class RelativeEntropy {
 		StochasticDeterministicFiniteAutomaton projectionRecall = Projection.project(a, b, ChooseProbability.A);
 		StochasticDeterministicFiniteAutomaton projectionPrecision = Projection.project(a, b, ChooseProbability.B);
 
-		BigDecimal eA = Entropy.entropy(a);
-		BigDecimal eB = Entropy.entropy(b);
-		BigDecimal ePr = Entropy.entropy(projectionRecall);
-		BigDecimal ePp = Entropy.entropy(projectionPrecision);
+		double eA = Entropy.entropy(a);
+		double eB = Entropy.entropy(b);
+		double ePr = Entropy.entropy(projectionRecall);
+		double ePp = Entropy.entropy(projectionPrecision);
 
-		return Pair.of(ePr.divide(eA, a.getRoundingMathContext()), ePp.divide(eB, a.getRoundingMathContext()));
+		return Pair.of(ePr / eA, ePp / eB);
 	}
 }

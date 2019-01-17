@@ -1,8 +1,5 @@
 package org.processmining.stochasticawareconformancechecking.automata;
 
-import java.math.BigDecimal;
-import java.math.MathContext;
-
 public interface StochasticDeterministicFiniteAutomaton extends Cloneable {
 
 	int getInitialState();
@@ -32,7 +29,7 @@ public interface StochasticDeterministicFiniteAutomaton extends Cloneable {
 	 * @param target
 	 * @param probability
 	 */
-	int addEdge(int source, short activity, BigDecimal probability);
+	int addEdge(int source, short activity, double probability);
 
 	/**
 	 * Adds an edge to the graph. Returns the (possibly new) target state. If
@@ -44,11 +41,9 @@ public interface StochasticDeterministicFiniteAutomaton extends Cloneable {
 	 * @param probability
 	 * @return
 	 */
-	void addEdge(int source, short activity, int target, BigDecimal probability);
+	void addEdge(int source, short activity, int target, double probability);
 
 	int addState();
-
-	public MathContext getRoundingMathContext();
 
 	public StochasticDeterministicFiniteAutomaton clone() throws CloneNotSupportedException;
 
@@ -64,7 +59,7 @@ public interface StochasticDeterministicFiniteAutomaton extends Cloneable {
 
 		public short getActivity();
 
-		public BigDecimal getProbability();
+		public double getProbability();
 
 		public void remove();
 	}
@@ -79,7 +74,7 @@ public interface StochasticDeterministicFiniteAutomaton extends Cloneable {
 
 		public int getSource();
 
-		public BigDecimal getProbability();
+		public double getProbability();
 
 		public short getActivity();
 	}
@@ -100,7 +95,7 @@ public interface StochasticDeterministicFiniteAutomaton extends Cloneable {
 
 		public short getActivity();
 
-		public BigDecimal getProbability();
+		public double getProbability();
 
 		public int nextEdge();
 
@@ -110,10 +105,8 @@ public interface StochasticDeterministicFiniteAutomaton extends Cloneable {
 
 		public short nextActivity();
 
-		public BigDecimal nextProbability();
+		public double nextProbability();
 
-		public void setProbability(BigDecimal probability);
-
-		public MathContext getRoundingMathContext();
+		public void setProbability(double probability);
 	}
 }

@@ -1,7 +1,5 @@
 package org.processmining.stochasticawareconformancechecking.helperclasses;
 
-import java.math.BigDecimal;
-
 import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomaton;
 import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomaton.EdgeIterable;
 import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomaton.EdgeIterableOutgoing;
@@ -9,14 +7,12 @@ import org.processmining.stochasticawareconformancechecking.automata.StochasticD
 public class CheckProbabilities {
 
 	public static boolean checkProbabilities(StochasticDeterministicFiniteAutomaton automaton) {
-		BigDecimal epsilon = StochasticUtils.getEpsilon(automaton);
-
 		{
 			EdgeIterable it = automaton.getEdgesIterator();
 			while (it.hasNext()) {
 				it.next();
 
-				if (!StochasticUtils.isProbability(it.getProbability(), epsilon)) {
+				if (!StochasticUtils.isProbability(it.getProbability())) {
 					return false;
 				}
 			}
@@ -26,7 +22,7 @@ public class CheckProbabilities {
 		for (int state = 0; state < automaton.getNumberOfStates(); state++) {
 			it.reset(state);
 
-			if (!StochasticUtils.isProbability(StochasticUtils.getTerminationProbability(it, state), epsilon)) {
+			if (!StochasticUtils.isProbability(StochasticUtils.getTerminationProbability(it, state))) {
 				return false;
 			}
 		}

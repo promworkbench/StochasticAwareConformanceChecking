@@ -1,7 +1,5 @@
 package org.processmining.stochasticawareconformancechecking.helperclasses;
 
-import java.math.BigDecimal;
-import java.math.MathContext;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,10 +22,12 @@ import org.processmining.stochasticawareconformancechecking.automata.StochasticD
 import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomatonMapped;
 import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomatonMappedImpl;
 
+import gnu.trove.map.TObjectDoubleMap;
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.custom_hash.TObjectIntCustomHashMap;
 import gnu.trove.map.hash.TCustomHashMap;
 import gnu.trove.map.hash.THashMap;
+import gnu.trove.map.hash.TObjectDoubleHashMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
 import gnu.trove.set.hash.TCustomHashSet;
 import gnu.trove.set.hash.THashSet;
@@ -86,18 +86,17 @@ public class StochasticPetriNet2StochasticDeterministicFiniteAutomaton2 {
 			int source = marking2state.get(marking);
 
 			s.setCurrentState(marking);
-			Map<Transition, Pair<short[], BigDecimal>> enabledTransitions = getEnabledTransitions(s, marking,
-					result.getRoundingMathContext(), result);
+			Map<Transition, Pair<short[], Double>> enabledTransitions = getEnabledTransitions(s, marking, result);
 
 			//System.out.println(enabledTransitions);
 
 			//second, put the transitions into the automaton
-			for (Entry<Transition, Pair<short[], BigDecimal>> pair : enabledTransitions.entrySet()) {
+			for (Entry<Transition, Pair<short[], Double>> pair : enabledTransitions.entrySet()) {
 				Transition t = pair.getKey();
 				short[] newMarking = pair.getValue().getA();
 				short activity = result.transform(t.getLabel());
-				BigDecimal probability = pair.getValue().getB();
-				if (StochasticUtils.isLargerThanZero(result, probability)) {
+				double probability = pair.getValue().getB();
+				if (StochasticUtils.isLargerThanZero(probability)) {
 					int target = marking2state.get(newMarking);
 					if (target == marking2state.getNoEntryValue()) {
 						target = result.addEdge(source, activity, probability);
@@ -125,16 +124,16 @@ public class StochasticPetriNet2StochasticDeterministicFiniteAutomaton2 {
 	 * @throws IllegalTransitionException
 	 * @throws UnsupportedPetriNetException
 	 */
-	private static Map<Transition, Pair<short[], BigDecimal>> getEnabledTransitions(
-			EfficientStochasticNetSemanticsImpl semantics, short[] startMarking, MathContext mc,
+	private static Map<Transition, Pair<short[], Double>> getEnabledTransitions(
+			EfficientStochasticNetSemanticsImpl semantics, short[] startMarking,
 			StochasticDeterministicFiniteAutomaton automaton) throws IllegalTransitionException {
 
 		Map<Transition[], short[]> path2marking = getPaths(semantics, startMarking);
 		List<Transition[]> paths = new ArrayList<>(path2marking.keySet());
 
 		//gather the probabilities for each transition
-		BigDecimal termination = BigDecimal.ZERO;
-		THashMap<Transition, BigDecimal> probabilities = new THashMap<>();
+		double termination = 0;
+		TObjectDoubleMap<Transition> probabilities = new TObjectDoubleHashMap<>(10, 0.5f, 0);
 		Iterator<Transition[]> it = paths.iterator();
 		for (int i = 0; i < paths.size(); i++) {
 			Transition[] path = it.next();
@@ -143,13 +142,12 @@ public class StochasticPetriNet2StochasticDeterministicFiniteAutomaton2 {
 
 			if (t.isInvisible()) {
 				//the last transition on this path is silent, so this path adds to the termination probability. 
-				termination = termination.add(getPathProbability(paths, i, mc, automaton));
+				termination = termination + getPathProbability(paths, i, automaton);
 			} else {
 				//the last transition on this path is an activity, so this path adds to the probability of that activity.
-				BigDecimal probability = getPathProbability(paths, i, mc, automaton);
+				double probability = getPathProbability(paths, i, automaton);
 
-				probabilities.putIfAbsent(t, BigDecimal.ZERO);
-				probabilities.put(t, probabilities.get(t).add(probability));
+				probabilities.put(t, probabilities.get(t) + probability);
 			}
 		}
 
@@ -171,7 +169,7 @@ public class StochasticPetriNet2StochasticDeterministicFiniteAutomaton2 {
 		}
 
 		//gather the result
-		Map<Transition, Pair<short[], BigDecimal>> result = new THashMap<>();
+		Map<Transition, Pair<short[], Double>> result = new THashMap<>();
 		for (Transition t : shortestPaths.keySet()) {
 			Transition[] path = shortestPaths.get(t);
 			result.put(t, Pair.of(path2marking.get(path), probabilities.get(t)));
@@ -187,18 +185,18 @@ public class StochasticPetriNet2StochasticDeterministicFiniteAutomaton2 {
 	 * @param automaton
 	 * @return the probability of the path
 	 */
-	private static BigDecimal getPathProbability(List<Transition[]> paths, int pathIndex, MathContext mc,
+	private static double getPathProbability(List<Transition[]> paths, int pathIndex,
 			StochasticDeterministicFiniteAutomaton automaton) {
 		BitSet prefixMatches = new BitSet(paths.size());
 		prefixMatches.set(0, paths.size());
 		Transition[] path = paths.get(pathIndex);
 
-		BigDecimal result = BigDecimal.ONE;
+		double result = 1;
 
 		for (int round = 0; round < path.length; round++) {
 
 			//compute the total sum of this round
-			BigDecimal sumWeightRound = BigDecimal.ZERO;
+			double sumWeightRound = 0;
 			int numberOfEnabledTransitions = 0;
 			{
 				THashSet<Transition> enabledTransitions = new THashSet<>();
@@ -207,7 +205,7 @@ public class StochasticPetriNet2StochasticDeterministicFiniteAutomaton2 {
 					enabledTransitions.add(paths.get(pathIndex2)[round]);
 				}
 				for (Transition t : enabledTransitions) {
-					sumWeightRound = sumWeightRound.add(new BigDecimal(((TimedTransition) t).getWeight()));
+					sumWeightRound += ((TimedTransition) t).getWeight();
 					numberOfEnabledTransitions++;
 				}
 			}
@@ -215,15 +213,13 @@ public class StochasticPetriNet2StochasticDeterministicFiniteAutomaton2 {
 			//add the probability of this step to the final result
 			{
 				Transition t = path[round];
-				if (StochasticUtils.isLargerThanZero(automaton, sumWeightRound)) {
-					BigDecimal probabilityThisStep = new BigDecimal(((TimedTransition) t).getWeight())
-							.divide(sumWeightRound, mc);
-					result = result.multiply(probabilityThisStep, mc);
+				if (StochasticUtils.isLargerThanZero(sumWeightRound)) {
+					double probabilityThisStep = (((TimedTransition) t).getWeight()) / sumWeightRound;
+					result = result * probabilityThisStep;
 				} else {
 					//if the sum weight is zero, then all transitions have no probabilities. Distribute evenly.
-					BigDecimal probabilityThisStep = BigDecimal.ONE.divide(new BigDecimal(numberOfEnabledTransitions),
-							automaton.getRoundingMathContext());
-					result = result.multiply(probabilityThisStep, mc);
+					double probabilityThisStep = 1.0 / numberOfEnabledTransitions;
+					result = result * probabilityThisStep;
 				}
 			}
 

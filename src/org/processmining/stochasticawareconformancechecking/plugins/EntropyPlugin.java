@@ -1,7 +1,5 @@
 package org.processmining.stochasticawareconformancechecking.plugins;
 
-import java.math.BigDecimal;
-
 import org.processmining.contexts.uitopia.annotations.UITopiaVariant;
 import org.processmining.framework.plugin.PluginContext;
 import org.processmining.framework.plugin.annotations.Plugin;
@@ -21,7 +19,7 @@ public class EntropyPlugin {
 	@PluginVariant(variantLabel = "Compute entropy of sdfa, dialog", requiredParameterLabels = { 0 })
 	public HTMLToString mineGuiProcessTree(final PluginContext context,
 			StochasticDeterministicFiniteAutomaton automaton) throws UnsupportedAutomatonException {
-		final BigDecimal entropy = Entropy.entropy(automaton);
+		final double entropy = Entropy.entropy(automaton);
 		return new HTMLToString() {
 			public String toHTMLString(boolean includeHTMLTags) {
 				return "entropy: " + entropy;

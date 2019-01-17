@@ -20,16 +20,16 @@ public class Projection {
 	public static enum ChooseProbability {
 		A, B, Minimum;
 
-		public BigDecimal getProbability(BigDecimal probabilityA, BigDecimal probabilityB) {
+		public double getProbability(double probabilityA, double probabilityB) {
 			switch (this) {
 				case A :
 					return probabilityA;
 				case B :
 					return probabilityB;
 				case Minimum :
-					return probabilityA.min(probabilityB);
+					return Math.min(probabilityA, probabilityB);
 				default :
-					return null;
+					return Double.MIN_VALUE;
 			}
 		}
 	}
@@ -141,7 +141,7 @@ public class Projection {
 			//			BigDecimal probability = chooseProbability.getProbability(itA.getProbability(), itB.getProbability())
 			//					.divide(totalProbability, result.getRoundingMathContext());
 			//			assert (totalProbability.compareTo(BigDecimal.ONE) <= 0);
-			BigDecimal probability = chooseProbability.getProbability(itA.getProbability(), itB.getProbability());
+			double probability = chooseProbability.getProbability(itA.getProbability(), itB.getProbability());
 
 			if (conjunctionTargetState == statePair2conjunctionState.getNoEntryValue()) {
 				//this state pair did not exist yet

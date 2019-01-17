@@ -1,7 +1,5 @@
 package org.processmining.stochasticawareconformancechecking.helperclasses;
 
-import java.math.BigDecimal;
-
 import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomaton;
 import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomaton.EdgeIterable;
 
@@ -16,7 +14,7 @@ public class FilterZeroEdges {
 		EdgeIterable it = automaton.getEdgesIterator();
 		while (it.hasNext()) {
 			it.next();
-			if (it.getProbability().compareTo(BigDecimal.ZERO) <= 0) {
+			if (!StochasticUtils.isLargerThanZero(it.getProbability())) {
 				it.remove();
 			}
 		}
