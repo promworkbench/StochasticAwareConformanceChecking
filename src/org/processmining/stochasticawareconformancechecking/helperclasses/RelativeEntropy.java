@@ -12,14 +12,14 @@ public class RelativeEntropy {
 
 		for (int logTraces = 1; logTraces <= 100; logTraces++) {
 			for (double loopBack = 0; loopBack < 1; loopBack += 0.01) {
-				
+
 			}
 		}
 		int modelTraces = 2;
 		double loopbackprobability = 0.2;
 
 		//log
-		StochasticDeterministicFiniteAutomatonMappedImpl<String> log = new StochasticDeterministicFiniteAutomatonMappedImpl<>();
+		StochasticDeterministicFiniteAutomatonMappedImpl log = new StochasticDeterministicFiniteAutomatonMappedImpl();
 		{
 			int traces = 100;
 
@@ -32,7 +32,7 @@ public class RelativeEntropy {
 		}
 
 		//model
-		StochasticDeterministicFiniteAutomatonMappedImpl<String> model = new StochasticDeterministicFiniteAutomatonMappedImpl<>();
+		StochasticDeterministicFiniteAutomatonMappedImpl model = new StochasticDeterministicFiniteAutomatonMappedImpl();
 		{
 			int finalState = 0;
 			if (modelTraces > 0) {
@@ -65,8 +65,8 @@ public class RelativeEntropy {
 	 * @throws CloneNotSupportedException
 	 * @throws UnsupportedAutomatonException
 	 */
-	public static Pair<Double, Double> relativeEntropy(StochasticDeterministicFiniteAutomatonMapped<String> a,
-			StochasticDeterministicFiniteAutomatonMapped<String> b)
+	public static Pair<Double, Double> relativeEntropy(StochasticDeterministicFiniteAutomatonMapped a,
+			StochasticDeterministicFiniteAutomatonMapped b)
 			throws CloneNotSupportedException, UnsupportedAutomatonException {
 
 		if (!CheckProbabilities.checkProbabilities(a)) {
@@ -118,8 +118,8 @@ public class RelativeEntropy {
 	 * @throws CloneNotSupportedException
 	 * @throws UnsupportedAutomatonException
 	 */
-	public static Pair<Double, Double> relativeEntropyHalf(StochasticDeterministicFiniteAutomatonMapped<String> a,
-			StochasticDeterministicFiniteAutomatonMapped<String> b)
+	public static Pair<Double, Double> relativeEntropyHalf(StochasticDeterministicFiniteAutomatonMapped a,
+			StochasticDeterministicFiniteAutomatonMapped b)
 			throws CloneNotSupportedException, UnsupportedAutomatonException {
 
 		if (!CheckProbabilities.checkProbabilities(a)) {

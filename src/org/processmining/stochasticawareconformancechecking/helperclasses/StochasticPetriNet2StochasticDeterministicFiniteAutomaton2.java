@@ -46,7 +46,7 @@ public class StochasticPetriNet2StochasticDeterministicFiniteAutomaton2 {
 	 * @throws IllegalTransitionException
 	 * @throws UnsupportedPetriNetException
 	 */
-	public static StochasticDeterministicFiniteAutomatonMapped<String> convert(StochasticNet net,
+	public static StochasticDeterministicFiniteAutomatonMapped convert(StochasticNet net,
 			Marking initialMarking) throws IllegalTransitionException, UnsupportedPetriNetException {
 		EfficientStochasticNetSemanticsImpl s = new EfficientStochasticNetSemanticsImpl();
 
@@ -59,9 +59,9 @@ public class StochasticPetriNet2StochasticDeterministicFiniteAutomaton2 {
 		return convert(net, initialMarkingS, s);
 	}
 
-	private static StochasticDeterministicFiniteAutomatonMapped<String> convert(StochasticNet net,
+	private static StochasticDeterministicFiniteAutomatonMapped convert(StochasticNet net,
 			short[] initialMarking, EfficientStochasticNetSemanticsImpl s) throws IllegalTransitionException {
-		StochasticDeterministicFiniteAutomatonMappedImpl<String> result = new StochasticDeterministicFiniteAutomatonMappedImpl<>();
+		StochasticDeterministicFiniteAutomatonMappedImpl result = new StochasticDeterministicFiniteAutomatonMappedImpl();
 
 		ArrayDeque<short[]> worklist = new ArrayDeque<>();
 

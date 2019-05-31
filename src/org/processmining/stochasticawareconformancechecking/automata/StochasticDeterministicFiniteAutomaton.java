@@ -28,6 +28,7 @@ public interface StochasticDeterministicFiniteAutomaton extends Cloneable {
 	 * @param activity
 	 * @param target
 	 * @param probability
+	 * @return The index of the target state (which may be newly created).
 	 */
 	int addEdge(int source, short activity, double probability);
 

@@ -34,15 +34,15 @@ public class Projection {
 		}
 	}
 
-	public static <X> StochasticDeterministicFiniteAutomaton project(StochasticDeterministicFiniteAutomatonMapped<X> a,
-			StochasticDeterministicFiniteAutomatonMapped<X> b, ChooseProbability chooseProbability) {
-		StochasticDeterministicFiniteAutomatonMappedImpl<X> result = new StochasticDeterministicFiniteAutomatonMappedImpl<>();
+	public static StochasticDeterministicFiniteAutomaton project(StochasticDeterministicFiniteAutomatonMapped a,
+			StochasticDeterministicFiniteAutomatonMapped b, ChooseProbability chooseProbability) {
+		StochasticDeterministicFiniteAutomatonMappedImpl result = new StochasticDeterministicFiniteAutomatonMappedImpl();
 
 		//first, relate the activities of the two automata
 		TShortShortMap AToB = new TShortShortHashMap(10, 0.5f, (short) -1, (short) -1);
 		for (TShortIterator it = a.allMappedIndices(); it.hasNext();) {
 			short indexA = it.next();
-			X elementA = a.transform(indexA);
+			String elementA = a.transform(indexA);
 			short indexB = b.transform(elementA);
 			if (indexB >= 0) {
 				AToB.put(indexA, indexB);

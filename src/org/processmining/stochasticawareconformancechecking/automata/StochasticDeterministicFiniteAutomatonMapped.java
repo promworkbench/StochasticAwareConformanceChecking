@@ -2,16 +2,16 @@ package org.processmining.stochasticawareconformancechecking.automata;
 
 import gnu.trove.iterator.TShortIterator;
 
-public interface StochasticDeterministicFiniteAutomatonMapped<X> extends StochasticDeterministicFiniteAutomaton {
+public interface StochasticDeterministicFiniteAutomatonMapped extends StochasticDeterministicFiniteAutomaton {
 
-	public short transform(X element);
+	public short transform(String element);
 
-	public void transform(X element, short index);
+	public void transform(String element, short index);
 
-	public X transform(short index);
+	public String transform(short index);
 
 	public TShortIterator allMappedIndices();
 
-	public StochasticDeterministicFiniteAutomatonMapped<X> clone() throws CloneNotSupportedException;
+	public StochasticDeterministicFiniteAutomatonMapped clone() throws CloneNotSupportedException;
 
 }

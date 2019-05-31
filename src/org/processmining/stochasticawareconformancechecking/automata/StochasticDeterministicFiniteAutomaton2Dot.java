@@ -2,8 +2,8 @@ package org.processmining.stochasticawareconformancechecking.automata;
 
 import org.processmining.plugins.graphviz.dot.Dot;
 import org.processmining.plugins.graphviz.dot.Dot.GraphDirection;
-import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomaton.EdgeIterable;
 import org.processmining.plugins.graphviz.dot.DotNode;
+import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomaton.EdgeIterable;
 
 public class StochasticDeterministicFiniteAutomaton2Dot {
 	public static Dot toDot(StochasticDeterministicFiniteAutomaton automaton) {
@@ -29,9 +29,8 @@ public class StochasticDeterministicFiniteAutomaton2Dot {
 			}
 
 			String activity;
-			if (automaton instanceof StochasticDeterministicFiniteAutomatonMapped<?>) {
-				activity = ((StochasticDeterministicFiniteAutomatonMapped<?>) automaton).transform(it.getActivity())
-						.toString();
+			if (automaton instanceof StochasticDeterministicFiniteAutomatonMapped) {
+				activity = ((StochasticDeterministicFiniteAutomatonMapped) automaton).transform(it.getActivity());
 			} else {
 				activity = it.getActivity() + "";
 			}

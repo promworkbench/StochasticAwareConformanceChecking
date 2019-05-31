@@ -12,7 +12,7 @@ import gnu.trove.map.TIntDoubleMap;
 import gnu.trove.map.hash.TIntDoubleHashMap;
 
 public class Log2StochasticDeterministicFiniteAutomaton {
-	public static StochasticDeterministicFiniteAutomatonMapped<String> convert(XLog log, XEventClassifier classifier,
+	public static StochasticDeterministicFiniteAutomatonMapped convert(XLog log, XEventClassifier classifier,
 			ProMCanceller canceller) throws UnsupportedLogException {
 
 		/**
@@ -22,7 +22,7 @@ public class Log2StochasticDeterministicFiniteAutomaton {
 			throw new UnsupportedLogException("Empty logs are not supported.");
 		}
 
-		StochasticDeterministicFiniteAutomatonMapped<String> result = new StochasticDeterministicFiniteAutomatonMappedImpl<>();
+		StochasticDeterministicFiniteAutomatonMapped result = new StochasticDeterministicFiniteAutomatonMappedImpl();
 
 		/**
 		 * Strategy: first, create a prefix automaton, while keeping track of
@@ -58,7 +58,7 @@ public class Log2StochasticDeterministicFiniteAutomaton {
 		return result;
 	}
 
-	public static short[] transformTrace(StochasticDeterministicFiniteAutomatonMapped<String> automaton, XTrace trace,
+	public static short[] transformTrace(StochasticDeterministicFiniteAutomatonMapped automaton, XTrace trace,
 			XEventClassifier classifier) {
 		short[] result = new short[trace.size()];
 		int i = 0;
@@ -69,7 +69,7 @@ public class Log2StochasticDeterministicFiniteAutomaton {
 		return result;
 	}
 
-	public static int addTrace(StochasticDeterministicFiniteAutomatonMapped<String> automaton,
+	public static int addTrace(StochasticDeterministicFiniteAutomatonMapped automaton,
 			TIntDoubleMap state2endingTraces, short[] trace, ProMCanceller canceller) {
 		int state = automaton.getInitialState();
 		for (int i = 0; i < trace.length; i++) {

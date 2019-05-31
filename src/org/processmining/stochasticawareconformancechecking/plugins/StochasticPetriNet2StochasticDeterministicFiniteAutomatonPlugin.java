@@ -22,7 +22,7 @@ public class StochasticPetriNet2StochasticDeterministicFiniteAutomatonPlugin {
 							"Stochastic Petri net" }, userAccessible = true, help = "Convert stochastic Petri net to stochastic deterministic finite automaton. The net must be a workflow net, bounded and stochastically regular.", level = PluginLevel.Regular)
 	@UITopiaVariant(affiliation = IMMiningDialog.affiliation, author = IMMiningDialog.author, email = IMMiningDialog.email)
 	@PluginVariant(variantLabel = "Mine a sdfa, dialog", requiredParameterLabels = { 0 })
-	public StochasticDeterministicFiniteAutomatonMapped<String> convert(final PluginContext context, StochasticNet net)
+	public StochasticDeterministicFiniteAutomatonMapped convert(final PluginContext context, StochasticNet net)
 			throws IllegalTransitionException, UnsupportedPetriNetException {
 		Marking initialMarking = guessInitialMarking(net);
 		return StochasticPetriNet2StochasticDeterministicFiniteAutomaton2.convert(net, initialMarking);
@@ -35,6 +35,19 @@ public class StochasticPetriNet2StochasticDeterministicFiniteAutomatonPlugin {
 				result.add(p);
 			}
 		}
+
+		if (result.isEmpty()) {
+			for (Place p : net.getPlaces()) {
+				if (p.getLabel().equals("source 1")) {
+					result.add(p);
+				}
+			}
+		}
+
+		if (result.isEmpty()) {
+			System.out.println("Could not find initial marking");
+		}
+
 		return result;
 	}
 }

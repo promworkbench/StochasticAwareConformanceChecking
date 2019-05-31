@@ -1,7 +1,5 @@
 package org.processmining.stochasticawareconformancechecking.plugins;
 
-import java.math.BigDecimal;
-
 import org.deckfour.xes.model.XLog;
 import org.processmining.contexts.uitopia.annotations.UITopiaVariant;
 import org.processmining.framework.plugin.PluginContext;
@@ -27,19 +25,23 @@ import org.processmining.stochasticawareconformancechecking.helperclasses.Unsupp
 public class RelativeEntropyPlugin {
 	@Plugin(name = "Compute relative entropy of stochastic deterministic finite automata", returnLabels = {
 			"Entropy" }, returnTypes = { HTMLToString.class }, parameterLabels = {
-					"Stochastic deterministic finite automaton" }, userAccessible = true, help = "Compute relative entropy of stochastic deterministic finite automata.", level = PluginLevel.Regular)
+					"Stochastic deterministic finite automaton (log)",
+					"Stochastic deterministic finite automaton (model)" }, userAccessible = true, help = "Compute relative entropy of stochastic deterministic finite automata.", level = PluginLevel.Regular)
 	@UITopiaVariant(affiliation = IMMiningDialog.affiliation, author = IMMiningDialog.author, email = IMMiningDialog.email)
 	@PluginVariant(variantLabel = "Compute entropy of sdfa, dialog", requiredParameterLabels = { 0, 1 })
-	public <X> HTMLToString computeSDFASDFA(final PluginContext context,
-			StochasticDeterministicFiniteAutomatonMapped<String> automatonA,
-			StochasticDeterministicFiniteAutomatonMapped<String> automatonB)
+	public HTMLToString computeSDFASDFA(final PluginContext context,
+			StochasticDeterministicFiniteAutomatonMapped automatonA,
+			StochasticDeterministicFiniteAutomatonMapped automatonB)
 			throws CloneNotSupportedException, UnsupportedAutomatonException {
-		final Pair<Double, Double> entropy = RelativeEntropy.relativeEntropy(automatonA, automatonB);
+		final Pair<Double, Double> entropyHalf = RelativeEntropy.relativeEntropyHalf(automatonA, automatonB);
+
 		return new HTMLToString() {
 			public String toHTMLString(boolean includeHTMLTags) {
-				return "recall: " + entropy.getA() + "<br>precision: " + entropy.getB();
+				return "single-sided recall: " + entropyHalf.getA() + "<br>single-sided precision: "
+						+ entropyHalf.getB();
 			}
 		};
+
 	}
 
 	@Plugin(name = "Compute relative entropy of a log and a stochastic Petri net", returnLabels = {
@@ -52,7 +54,7 @@ public class RelativeEntropyPlugin {
 			throws IllegalTransitionException, UnsupportedPetriNetException, CloneNotSupportedException,
 			UnsupportedLogException, UnsupportedAutomatonException {
 
-		StochasticDeterministicFiniteAutomatonMapped<String> automatonA = Log2StochasticDeterministicFiniteAutomaton
+		StochasticDeterministicFiniteAutomatonMapped automatonA = Log2StochasticDeterministicFiniteAutomaton
 				.convert(log, MiningParameters.getDefaultClassifier(), new ProMCanceller() {
 					public boolean isCancelled() {
 						return context.getProgress().isCancelled();
@@ -61,16 +63,16 @@ public class RelativeEntropyPlugin {
 
 		Marking initialMarking = StochasticPetriNet2StochasticDeterministicFiniteAutomatonPlugin
 				.guessInitialMarking(pnB);
-		StochasticDeterministicFiniteAutomatonMapped<String> automatonB = StochasticPetriNet2StochasticDeterministicFiniteAutomaton2
+		StochasticDeterministicFiniteAutomatonMapped automatonB = StochasticPetriNet2StochasticDeterministicFiniteAutomaton2
 				.convert(pnB, initialMarking);
 		//final Pair<Double, Double> entropy = RelativeEntropy.relativeEntropy(automatonA, automatonB);
 		final Pair<Double, Double> entropyHalf = RelativeEntropy.relativeEntropyHalf(automatonA, automatonB);
-		final Pair<BigDecimal, BigDecimal> entropy = Pair.of(new BigDecimal("-100"), new BigDecimal("-100"));
-		
+		//final Pair<BigDecimal, BigDecimal> entropy = Pair.of(new BigDecimal("-100"), new BigDecimal("-100"));
+
 		return new HTMLToString() {
 			public String toHTMLString(boolean includeHTMLTags) {
-				return "recall: " + entropy.getA() + "<br>precision: " + entropy.getB() + "<br>single-sided recall: "
-						+ entropyHalf.getA() + "<br>single-sided precision: " + entropyHalf.getB();
+				return "single-sided recall: " + entropyHalf.getA() + "<br>single-sided precision: "
+						+ entropyHalf.getB();
 			}
 		};
 	}

@@ -12,7 +12,7 @@ import org.processmining.stochasticawareconformancechecking.automata.StochasticD
 public class MakeAutomatonChoiceFul {
 	public static String escapeActivity = "(()Escape())";
 
-	public static void convert(StochasticDeterministicFiniteAutomatonMapped<String> automaton) {
+	public static void convert(StochasticDeterministicFiniteAutomatonMapped automaton) {
 		short escapeActivityIndex = automaton.transform(escapeActivity);
 		int escapeState = -1;
 		double epsilon = StochasticUtils.getMeaningfulepsilon();

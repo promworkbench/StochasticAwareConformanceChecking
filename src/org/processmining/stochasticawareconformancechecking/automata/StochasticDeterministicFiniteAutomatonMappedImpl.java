@@ -7,14 +7,14 @@ import gnu.trove.map.TObjectShortMap;
 import gnu.trove.map.hash.TObjectShortHashMap;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-public class StochasticDeterministicFiniteAutomatonMappedImpl<X> extends StochasticDeterministicFiniteAutomatonImpl
-		implements StochasticDeterministicFiniteAutomatonMapped<X> {
+public class StochasticDeterministicFiniteAutomatonMappedImpl extends StochasticDeterministicFiniteAutomatonImpl
+		implements StochasticDeterministicFiniteAutomatonMapped {
 
-	TObjectShortMap<X> activity2index = new TObjectShortHashMap<>(10, 0.6f, (short) -1);
-	ArrayList<X> index2activity = new ArrayList<>();
+	TObjectShortMap<String> activity2index = new TObjectShortHashMap<>(10, 0.6f, (short) -1);
+	ArrayList<String> index2activity = new ArrayList<>();
 	short maxIndex = -1;
 
-	public short transform(X element) {
+	public short transform(String element) {
 		short index = activity2index.putIfAbsent(element, (short) (maxIndex + 1));
 		if (index == activity2index.getNoEntryValue()) {
 			if (maxIndex == Short.MAX_VALUE) {
@@ -27,7 +27,7 @@ public class StochasticDeterministicFiniteAutomatonMappedImpl<X> extends Stochas
 		return index;
 	}
 
-	public void transform(X element, short index) {
+	public void transform(String element, short index) {
 		activity2index.put(element, index);
 		while (index2activity.size() <= index) {
 			index2activity.add(null);
@@ -36,7 +36,7 @@ public class StochasticDeterministicFiniteAutomatonMappedImpl<X> extends Stochas
 		maxIndex = (short) Math.max(index, maxIndex);
 	}
 
-	public X transform(short index) {
+	public String transform(short index) {
 		return index2activity.get(index);
 	}
 
@@ -59,9 +59,8 @@ public class StochasticDeterministicFiniteAutomatonMappedImpl<X> extends Stochas
 		};
 	}
 
-	@SuppressWarnings("unchecked")
-	public StochasticDeterministicFiniteAutomatonMappedImpl<X> clone() throws CloneNotSupportedException {
-		StochasticDeterministicFiniteAutomatonMappedImpl<X> result = (StochasticDeterministicFiniteAutomatonMappedImpl<X>) super.clone();
+	public StochasticDeterministicFiniteAutomatonMappedImpl clone() throws CloneNotSupportedException {
+		StochasticDeterministicFiniteAutomatonMappedImpl result = (StochasticDeterministicFiniteAutomatonMappedImpl) super.clone();
 
 		result.activity2index = new TObjectShortHashMap<>(this.activity2index);
 		result.index2activity = new ArrayList<>(this.index2activity);

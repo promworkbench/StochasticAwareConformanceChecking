@@ -20,7 +20,7 @@ public class Log2StochasticDeterministicFiniteAutomatonPlugin {
 							"Event log" }, userAccessible = true, help = "Convert log to stochastic deterministic finite automaton.", level = PluginLevel.Regular)
 	@UITopiaVariant(affiliation = IMMiningDialog.affiliation, author = IMMiningDialog.author, email = IMMiningDialog.email)
 	@PluginVariant(variantLabel = "Mine a sdfa, dialog", requiredParameterLabels = { 0 })
-	public StochasticDeterministicFiniteAutomatonMapped<String> convert(final PluginContext context, XLog log)
+	public StochasticDeterministicFiniteAutomatonMapped convert(final PluginContext context, XLog log)
 			throws UnsupportedLogException {
 		return Log2StochasticDeterministicFiniteAutomaton.convert(log, MiningParameters.defaultClassifier,
 				new ProMCanceller() {
