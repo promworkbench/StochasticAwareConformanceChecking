@@ -76,4 +76,39 @@ public class RelativeEntropyPlugin {
 			}
 		};
 	}
+
+	@Plugin(name = "Compute relative entropy of two stochastic Petri nets", returnLabels = {
+			"Entropy" }, returnTypes = { HTMLToString.class }, parameterLabels = {
+					"Stochastic Petri net" }, userAccessible = true, help = "Compute relative entropy of stochastic deterministic finite automata.", level = PluginLevel.Regular)
+	@UITopiaVariant(affiliation = IMMiningDialog.affiliation, author = IMMiningDialog.author, email = IMMiningDialog.email)
+	@PluginVariant(variantLabel = "Compute entropy of sdfa, dialog", requiredParameterLabels = { 0, 0 })
+	public HTMLToString compute(final PluginContext context, StochasticNet pnA, StochasticNet pnB)
+			throws IllegalTransitionException, UnsupportedPetriNetException, CloneNotSupportedException,
+			UnsupportedAutomatonException {
+
+		StochasticDeterministicFiniteAutomatonMapped automatonA;
+		{
+			Marking initialMarking = StochasticPetriNet2StochasticDeterministicFiniteAutomatonPlugin
+					.guessInitialMarking(pnA);
+			automatonA = StochasticPetriNet2StochasticDeterministicFiniteAutomaton2.convert(pnA, initialMarking);
+			//final Pair<Double, Double> entropy = RelativeEntropy.relativeEntropy(automatonA, automatonB);
+		}
+		
+		StochasticDeterministicFiniteAutomatonMapped automatonB;
+		{
+			Marking initialMarking = StochasticPetriNet2StochasticDeterministicFiniteAutomatonPlugin
+					.guessInitialMarking(pnB);
+			automatonB = StochasticPetriNet2StochasticDeterministicFiniteAutomaton2.convert(pnB, initialMarking);
+			//final Pair<Double, Double> entropy = RelativeEntropy.relativeEntropy(automatonA, automatonB);
+		}
+		final Pair<Double, Double> entropyHalf = RelativeEntropy.relativeEntropyHalf(automatonA, automatonB);
+		//final Pair<BigDecimal, BigDecimal> entropy = Pair.of(new BigDecimal("-100"), new BigDecimal("-100"));
+
+		return new HTMLToString() {
+			public String toHTMLString(boolean includeHTMLTags) {
+				return "single-sided recall: " + entropyHalf.getA() + "<br>single-sided precision: "
+						+ entropyHalf.getB();
+			}
+		};
+	}
 }
