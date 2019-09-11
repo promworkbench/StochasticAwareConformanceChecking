@@ -54,12 +54,38 @@ public class RelativeEntropyPlugin {
 			throws IllegalTransitionException, UnsupportedPetriNetException, CloneNotSupportedException,
 			UnsupportedLogException, UnsupportedAutomatonException {
 
+		final Pair<Double, Double> entropyHalf = compute(log, pnB, new ProMCanceller() {
+			public boolean isCancelled() {
+				return context.getProgress().isCancelled();
+			}
+		});
+
+		return new HTMLToString() {
+			public String toHTMLString(boolean includeHTMLTags) {
+				return "single-sided recall: " + entropyHalf.getA() + "<br>single-sided precision: "
+						+ entropyHalf.getB();
+			}
+		};
+	}
+
+	/**
+	 * A: recall, B: precision
+	 * 
+	 * @param log
+	 * @param pnB
+	 * @param canceller
+	 * @return
+	 * @throws UnsupportedLogException
+	 * @throws IllegalTransitionException
+	 * @throws UnsupportedPetriNetException
+	 * @throws CloneNotSupportedException
+	 * @throws UnsupportedAutomatonException
+	 */
+	public static Pair<Double, Double> compute(XLog log, StochasticNet pnB, ProMCanceller canceller)
+			throws UnsupportedLogException, IllegalTransitionException, UnsupportedPetriNetException,
+			CloneNotSupportedException, UnsupportedAutomatonException {
 		StochasticDeterministicFiniteAutomatonMapped automatonA = Log2StochasticDeterministicFiniteAutomaton
-				.convert(log, MiningParameters.getDefaultClassifier(), new ProMCanceller() {
-					public boolean isCancelled() {
-						return context.getProgress().isCancelled();
-					}
-				});
+				.convert(log, MiningParameters.getDefaultClassifier(), canceller);
 
 		Marking initialMarking = StochasticPetriNet2StochasticDeterministicFiniteAutomatonPlugin
 				.guessInitialMarking(pnB);
@@ -68,13 +94,7 @@ public class RelativeEntropyPlugin {
 		//final Pair<Double, Double> entropy = RelativeEntropy.relativeEntropy(automatonA, automatonB);
 		final Pair<Double, Double> entropyHalf = RelativeEntropy.relativeEntropyHalf(automatonA, automatonB);
 		//final Pair<BigDecimal, BigDecimal> entropy = Pair.of(new BigDecimal("-100"), new BigDecimal("-100"));
-
-		return new HTMLToString() {
-			public String toHTMLString(boolean includeHTMLTags) {
-				return "single-sided recall: " + entropyHalf.getA() + "<br>single-sided precision: "
-						+ entropyHalf.getB();
-			}
-		};
+		return entropyHalf;
 	}
 
 	@Plugin(name = "Compute relative entropy of two stochastic Petri nets", returnLabels = {
@@ -93,7 +113,7 @@ public class RelativeEntropyPlugin {
 			automatonA = StochasticPetriNet2StochasticDeterministicFiniteAutomaton2.convert(pnA, initialMarking);
 			//final Pair<Double, Double> entropy = RelativeEntropy.relativeEntropy(automatonA, automatonB);
 		}
-		
+
 		StochasticDeterministicFiniteAutomatonMapped automatonB;
 		{
 			Marking initialMarking = StochasticPetriNet2StochasticDeterministicFiniteAutomatonPlugin
