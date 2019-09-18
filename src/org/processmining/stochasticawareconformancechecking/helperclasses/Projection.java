@@ -29,7 +29,7 @@ public class Projection {
 				case Minimum :
 					return Math.min(probabilityA, probabilityB);
 				default :
-					return Double.MIN_VALUE;
+					return -Double.MAX_VALUE;
 			}
 		}
 	}
