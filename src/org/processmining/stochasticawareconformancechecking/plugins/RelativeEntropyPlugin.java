@@ -16,6 +16,7 @@ import org.processmining.plugins.InductiveMiner.mining.MiningParameters;
 import org.processmining.plugins.InductiveMiner.plugins.dialogs.IMMiningDialog;
 import org.processmining.stochasticawareconformancechecking.automata.Log2StochasticDeterministicFiniteAutomaton;
 import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomatonMapped;
+import org.processmining.stochasticawareconformancechecking.helperclasses.GainEntropy;
 import org.processmining.stochasticawareconformancechecking.helperclasses.RelativeEntropy;
 import org.processmining.stochasticawareconformancechecking.helperclasses.StochasticPetriNet2StochasticDeterministicFiniteAutomaton2;
 import org.processmining.stochasticawareconformancechecking.helperclasses.UnsupportedAutomatonException;
@@ -95,6 +96,21 @@ public class RelativeEntropyPlugin {
 		final Pair<Double, Double> entropyHalf = RelativeEntropy.relativeEntropyHalf(automatonA, automatonB);
 		//final Pair<BigDecimal, BigDecimal> entropy = Pair.of(new BigDecimal("-100"), new BigDecimal("-100"));
 		return entropyHalf;
+	}
+
+	/**
+	 * 
+	 * @param log
+	 * @param pnB
+	 * @param canceller
+	 * @return (gain recall, gain precision)
+	 */
+	public static Pair<Double, Double> computeGain(XLog log, StochasticNet pnB, ProMCanceller canceller) {
+		Marking initialMarking = StochasticPetriNet2StochasticDeterministicFiniteAutomatonPlugin
+				.guessInitialMarking(pnB);
+
+		final Pair<Double, Double> gainEntropy = GainEntropy.compute(log, pnB, initialMarking, canceller);
+		return gainEntropy;
 	}
 
 	@Plugin(name = "Compute relative entropy of two stochastic Petri nets", returnLabels = {

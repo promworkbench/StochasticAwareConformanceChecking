@@ -69,28 +69,11 @@ public class RelativeEntropy {
 			StochasticDeterministicFiniteAutomatonMapped b)
 			throws CloneNotSupportedException, UnsupportedAutomatonException {
 
-		if (!CheckProbabilities.checkProbabilities(a)) {
-			throw new UnsupportedAutomatonException("Automaton's probabilities are out of range.");
-		}
-		if (!CheckProbabilities.checkProbabilities(b)) {
-			throw new UnsupportedAutomatonException("Automaton's probabilities are out of range.");
-		}
-
 		a = a.clone();
 		b = b.clone();
-		FilterZeroEdges.filter(a); //filter edges that have zero weight
-		FilterZeroEdges.filter(b); //filter edges that have zero weight
 
-		//check for death paths (should be done after zero-edge filtering)
-		if (CheckDeadPaths.hasDeathPaths(a)) {
-			throw new UnsupportedAutomatonException("Automaton contains death paths.");
-		}
-		if (CheckDeadPaths.hasDeathPaths(b)) {
-			throw new UnsupportedAutomatonException("Automaton contains death paths.");
-		}
-
-		MakeAutomatonChoiceFul.convert(a); //add a small choice to each automaton to prevent zero-entropy
-		MakeAutomatonChoiceFul.convert(b);//add a small choice to each automaton to prevent zero-entropy
+		prepareAndCheckAutomaton(a);
+		prepareAndCheckAutomaton(b);
 
 		System.out.println("projecting...");
 		StochasticDeterministicFiniteAutomaton projection = Projection.project(a, b, ChooseProbability.Minimum);
@@ -106,6 +89,22 @@ public class RelativeEntropy {
 		System.out.println(eB);
 
 		return Pair.of(eP / eA, eP / eB);
+	}
+
+	public static void prepareAndCheckAutomaton(StochasticDeterministicFiniteAutomatonMapped a)
+			throws UnsupportedAutomatonException {
+		if (!CheckProbabilities.checkProbabilities(a)) {
+			throw new UnsupportedAutomatonException("Automaton's probabilities are out of range.");
+		}
+
+		FilterZeroEdges.filter(a); //filter edges that have zero weight
+
+		//check for death paths (should be done after zero-edge filtering)
+		if (CheckDeadPaths.hasDeathPaths(a)) {
+			throw new UnsupportedAutomatonException("Automaton contains death paths.");
+		}
+
+		MakeAutomatonChoiceFul.convert(a); //add a small choice to each automaton to prevent zero-entropy
 	}
 
 	/**
