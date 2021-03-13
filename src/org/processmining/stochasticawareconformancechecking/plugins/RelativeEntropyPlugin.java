@@ -104,8 +104,15 @@ public class RelativeEntropyPlugin {
 	 * @param pnB
 	 * @param canceller
 	 * @return (gain recall, gain precision)
+	 * @throws CloneNotSupportedException
+	 * @throws UnsupportedAutomatonException
+	 * @throws UnsupportedPetriNetException
+	 * @throws IllegalTransitionException
+	 * @throws UnsupportedLogException
 	 */
-	public static Pair<Double, Double> computeGain(XLog log, StochasticNet pnB, ProMCanceller canceller) {
+	public static Pair<Double, Double> computeGain(XLog log, StochasticNet pnB, ProMCanceller canceller)
+			throws UnsupportedLogException, IllegalTransitionException, UnsupportedPetriNetException,
+			UnsupportedAutomatonException, CloneNotSupportedException {
 		Marking initialMarking = StochasticPetriNet2StochasticDeterministicFiniteAutomatonPlugin
 				.guessInitialMarking(pnB);
 
