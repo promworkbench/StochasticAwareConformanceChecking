@@ -58,7 +58,7 @@ public class GainEntropy {
 		}
 
 		System.out.println("computing entropy B...");
-		double eB = Entropy.entropy(automatonB);
+		double eB = Entropy.entropy(automatonBadjusted);
 		System.out.println(eB);
 
 		if (canceller.isCancelled()) {
@@ -66,7 +66,7 @@ public class GainEntropy {
 		}
 
 		System.out.println("computing conjunctive entropy...");
-		double eC = conjuctiveEntropy(languageA, automatonB).doubleValue();
+		double eC = conjunctiveEntropy(languageA, automatonB).doubleValue();
 		System.out.println(eC);
 
 		if (canceller.isCancelled()) {
@@ -79,7 +79,7 @@ public class GainEntropy {
 		return Pair.of(gainRecall, gainPrecision);
 	}
 
-	public static BigDecimal conjuctiveEntropy(StochasticLanguage languageA,
+	public static BigDecimal conjunctiveEntropy(StochasticLanguage languageA,
 			StochasticDeterministicFiniteAutomatonMapped automatonB) {
 		BigDecimal result = BigDecimal.ZERO;
 
@@ -90,10 +90,7 @@ public class GainEntropy {
 			if (StochasticUtils.isLargerThanZero(pModel)) {
 				//trace is in conjunction
 
-				double entLog = getTraceEntropy(it.getProbability());
-				double entModel = getTraceEntropy(pModel);
-
-				double entContribution = Math.min(entLog, entModel);
+				double entContribution = getTraceEntropy(it.getProbability(), pModel);
 
 				result = result.add(BigDecimal.valueOf(entContribution));
 			}
@@ -102,11 +99,18 @@ public class GainEntropy {
 		return result;
 	}
 
-	public static double getTraceEntropy(double probability) {
-		if (!StochasticUtils.isLargerThanZero(probability)) {
-			return 0;
-		}
-		return probability * Math.log(probability);
+	public static double getTraceEntropy(double pX, double pY) {
+		double epsilon = StochasticUtils.getEpsilon();
+
+		return Math.min(-pX * (1 - epsilon) * log2((pX * (1 - epsilon))), //
+				-pY * (1 - epsilon) * log2(pY * (1 - epsilon))) //
+				+ //
+				Math.min(-pX * epsilon * log2(pX * epsilon), //
+						-(pY * epsilon) * log2(pY * epsilon));
+	}
+
+	public static double log2(double value) {
+		return Math.log(value) / Math.log(2);
 	}
 
 	private static BigDecimal getProbability(StochasticDeterministicFiniteAutomatonMapped automatonB, String[] trace) {
