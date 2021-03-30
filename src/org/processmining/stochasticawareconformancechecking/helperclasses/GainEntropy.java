@@ -120,7 +120,21 @@ public class GainEntropy {
 
 		for (String activity : trace) {
 			short activityIndex = automatonB.transform(activity);
-			double activityProbability = getActivityProbability(it, state, activityIndex);
+
+			//find the edge
+			double activityProbability = Double.NaN;
+			it.reset(state);
+			while (it.hasNext()) {
+				if (it.nextActivity() == activityIndex) {
+					activityProbability = it.getProbability();
+					state = it.getTarget();
+					break;
+				}
+			}
+
+			if (Double.isNaN(activityProbability)) {
+				return BigDecimal.ZERO;
+			}
 
 			probability = probability.multiply(BigDecimal.valueOf(activityProbability));
 		}
