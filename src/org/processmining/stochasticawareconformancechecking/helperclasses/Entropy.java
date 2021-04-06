@@ -105,7 +105,7 @@ public class Entropy {
 		EdgeIterableIncoming incomingEdges = automaton.getIncomingEdgesIterator(-1);
 
 		do {
-			System.out.println(" new iteration");
+			//System.out.println(" new iteration");
 			for (int iteration = 0; iteration < checkEqualityEveryIterations; iteration++) {
 
 				//swap the arrays
@@ -134,7 +134,7 @@ public class Entropy {
 	public static boolean areEqual(double[] previous, double[] current) {
 		for (int i = 0; i < previous.length; i++) {
 			if (!StochasticUtils.areEqual(previous[i], current[i])) {
-				System.out.println(" unequal at " + i + " of " + current.length);
+				//System.out.println(" unequal at " + i + " of " + current.length);
 				return false;
 			}
 		}
