@@ -100,13 +100,21 @@ public class GainEntropy {
 	}
 
 	public static double getTraceEntropy(double pX, double pY) {
-		double epsilon = StochasticUtils.getEpsilon();
+		double epsilon = StochasticUtils.getMeaningfulepsilon();
+		double min1 = -pX * (1 - epsilon) * log2((pX * (1 - epsilon)));
+		double min2 = -pY * (1 - epsilon) * log2(pY * (1 - epsilon));
+		double min3 = -pX * epsilon * log2(pX * epsilon);
+		double min4 = -(pY * epsilon) * log2(pY * epsilon);
 
-		return Math.min(-pX * (1 - epsilon) * log2((pX * (1 - epsilon))), //
-				-pY * (1 - epsilon) * log2(pY * (1 - epsilon))) //
-				+ //
-				Math.min(-pX * epsilon * log2(pX * epsilon), //
-						-(pY * epsilon) * log2(pY * epsilon));
+//		System.out.println("min1 " + min1);
+//		System.out.println("min2 " + min2);
+//		System.out.println("min3 " + min3);
+//		System.out.println("min4 " + min4);
+//
+//		System.out.println("sumB " + (min2 + min4));
+
+		//return Math.min(min1 + min3, min2 + min4);
+		return Math.min(min1, min2) + Math.min(min3, min4);
 	}
 
 	public static double log2(double value) {
