@@ -7,7 +7,7 @@ import org.processmining.earthmoversstochasticconformancechecking.algorithms.XLo
 import org.processmining.earthmoversstochasticconformancechecking.stochasticlanguage.Activity2IndexKey;
 import org.processmining.earthmoversstochasticconformancechecking.stochasticlanguage.StochasticLanguage;
 import org.processmining.earthmoversstochasticconformancechecking.stochasticlanguage.StochasticTraceIterator;
-import org.processmining.earthmoversstochasticconformancechecking.stochasticlanguage.log.StochasticLanguageLog;
+import org.processmining.earthmoversstochasticconformancechecking.stochasticlanguage.TotalOrder;
 import org.processmining.framework.plugin.ProMCanceller;
 import org.processmining.models.graphbased.directed.petrinet.StochasticNet;
 import org.processmining.models.semantics.IllegalTransitionException;
@@ -42,7 +42,7 @@ public class GainEntropy {
 		}
 
 		Activity2IndexKey activityKey = new Activity2IndexKey();
-		StochasticLanguageLog languageA = XLog2StochasticLanguage.convert(log, MiningParameters.getDefaultClassifier(),
+		StochasticLanguage<TotalOrder> languageA = XLog2StochasticLanguage.convert(log, MiningParameters.getDefaultClassifier(),
 				activityKey, canceller);
 
 		if (canceller.isCancelled()) {
@@ -79,12 +79,13 @@ public class GainEntropy {
 		return Pair.of(gainRecall, gainPrecision);
 	}
 
-	public static BigDecimal conjunctiveEntropy(StochasticLanguage languageA,
+	public static BigDecimal conjunctiveEntropy(StochasticLanguage<TotalOrder> languageA,
 			StochasticDeterministicFiniteAutomatonMapped automatonB) {
 		BigDecimal result = BigDecimal.ZERO;
 
-		for (StochasticTraceIterator it = languageA.iterator(); it.hasNext();) {
-			String[] trace = it.next();
+		for (StochasticTraceIterator<TotalOrder> it = languageA.iterator(); it.hasNext();) {
+			int[] traceI = it.next();
+			String[] trace = languageA.getActivityKey().toTraceString(traceI);
 
 			double pModel = getProbability(automatonB, trace).doubleValue();
 			if (StochasticUtils.isLargerThanZero(pModel)) {
