@@ -1,7 +1,10 @@
 package org.processmining.stochasticawareconformancechecking.helperclasses;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.math.BigDecimal;
 
+import org.apache.commons.io.IOUtils;
 import org.deckfour.xes.model.XLog;
 import org.processmining.earthmoversstochasticconformancechecking.algorithms.XLog2StochasticLanguage;
 import org.processmining.earthmoversstochasticconformancechecking.stochasticlanguage.Activity2IndexKey;
@@ -25,6 +28,14 @@ public class GainEntropy {
 			UnsupportedPetriNetException, UnsupportedAutomatonException, CloneNotSupportedException {
 		StochasticDeterministicFiniteAutomatonMapped automatonA = Log2StochasticDeterministicFiniteAutomaton
 				.convert(log, MiningParameters.getDefaultClassifier(), canceller);
+
+		try {
+			IOUtils.write(automatonA.toString(), new FileWriter(
+					"/home/sander/Documents/svn/20 - stochastic conformance checking - Artem/05 - IS paper invited/experiment/automatonA.dot"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
 		RelativeEntropy.prepareAndCheckAutomaton(automatonA);
 
 		if (canceller.isCancelled()) {
@@ -34,16 +45,30 @@ public class GainEntropy {
 		StochasticDeterministicFiniteAutomatonMapped automatonB = StochasticPetriNet2StochasticDeterministicFiniteAutomaton2
 				.convert(pnB, initialMarking);
 
+		try {
+			IOUtils.write(automatonB.toString(), new FileWriter(
+					"/home/sander/Documents/svn/20 - stochastic conformance checking - Artem/05 - IS paper invited/experiment/automatonB-before.dot"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
 		StochasticDeterministicFiniteAutomatonMapped automatonBadjusted = automatonB.clone();
 		RelativeEntropy.prepareAndCheckAutomaton(automatonBadjusted);
+
+		try {
+			IOUtils.write(automatonBadjusted.toString(), new FileWriter(
+					"/home/sander/Documents/svn/20 - stochastic conformance checking - Artem/05 - IS paper invited/experiment/automatonB.dot"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
 		if (canceller.isCancelled()) {
 			return null;
 		}
 
 		Activity2IndexKey activityKey = new Activity2IndexKey();
-		StochasticLanguage<TotalOrder> languageA = XLog2StochasticLanguage.convert(log, MiningParameters.getDefaultClassifier(),
-				activityKey, canceller);
+		StochasticLanguage<TotalOrder> languageA = XLog2StochasticLanguage.convert(log,
+				MiningParameters.getDefaultClassifier(), activityKey, canceller);
 
 		if (canceller.isCancelled()) {
 			return null;
@@ -84,8 +109,7 @@ public class GainEntropy {
 		BigDecimal result = BigDecimal.ZERO;
 
 		for (StochasticTraceIterator<TotalOrder> it = languageA.iterator(); it.hasNext();) {
-			int[] traceI = it.next();
-			String[] trace = languageA.getActivityKey().toTraceString(traceI);
+			String[] trace = languageA.getActivityKey().toTraceString(it.next());
 
 			double pModel = getProbability(automatonB, trace).doubleValue();
 			if (StochasticUtils.isLargerThanZero(pModel)) {
@@ -107,12 +131,12 @@ public class GainEntropy {
 		double min3 = -pX * epsilon * log2(pX * epsilon);
 		double min4 = -(pY * epsilon) * log2(pY * epsilon);
 
-//		System.out.println("min1 " + min1);
-//		System.out.println("min2 " + min2);
-//		System.out.println("min3 " + min3);
-//		System.out.println("min4 " + min4);
-//
-//		System.out.println("sumB " + (min2 + min4));
+		//		System.out.println("min1 " + min1);
+		//		System.out.println("min2 " + min2);
+		//		System.out.println("min3 " + min3);
+		//		System.out.println("min4 " + min4);
+		//
+		//		System.out.println("sumB " + (min2 + min4));
 
 		//return Math.min(min1 + min3, min2 + min4);
 		return Math.min(min1, min2) + Math.min(min3, min4);
