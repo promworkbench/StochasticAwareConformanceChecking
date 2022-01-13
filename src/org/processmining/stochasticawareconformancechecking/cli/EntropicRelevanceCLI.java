@@ -76,7 +76,6 @@ public class EntropicRelevanceCLI {
 		// run experiment
 		long start = System.nanoTime();
 		computeEntropicRelevance(log,model);
-		computeEntropicRelevance(log,model);
 		computeEntropicRelevance(log,model);		
 		double entRel = computeEntropicRelevance(log,model);
 		long finish = System.nanoTime();
@@ -164,7 +163,6 @@ public class EntropicRelevanceCLI {
 							smarking = m;
 							sindex = i;
 						}
-						else throw new IllegalArgumentException();
 					}
 					i++;
 				}
@@ -180,17 +178,11 @@ public class EntropicRelevanceCLI {
 			}
 		}
 		
-		Map<Transition[], short[]> paths  = getPaths(s,marking);
+		Map<Transition[], short[]> paths = getPaths(s,marking);
 		if (paths.size()==0) 
 			return Double.valueOf(p);
 		else {
-			double pNotToTerminateSilently = 0.0;
-			List<Transition[]> tpaths = new ArrayList<Transition[]>();
-			tpaths.addAll(paths.keySet());
-			for (int i=0; i<paths.size(); i++) {
-				pNotToTerminateSilently+=getPathProbability(fpaths,i);
-			}
-			return Double.valueOf(p*(1-pNotToTerminateSilently));
+			return Double.NaN;
 		}
 	}
 
