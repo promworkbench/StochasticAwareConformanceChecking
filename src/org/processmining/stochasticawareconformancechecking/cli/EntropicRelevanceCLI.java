@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -21,23 +21,15 @@ import org.processmining.models.graphbased.directed.petrinet.elements.Transition
 import org.processmining.models.semantics.IllegalTransitionException;
 import org.processmining.models.semantics.petrinet.Marking;
 import org.processmining.models.semantics.petrinet.impl.EfficientStochasticNetSemanticsImpl;
-import org.processmining.plugins.InductiveMiner.Pair;
 import org.processmining.plugins.pnml.importing.StochasticNetDeserializer;
 import org.processmining.plugins.pnml.simple.PNMLRoot;
-import org.processmining.stochasticawareconformancechecking.automata.StochasticDeterministicFiniteAutomaton;
 import org.processmining.stochasticawareconformancechecking.helperclasses.StochasticUtils;
-import org.processmining.stochasticawareconformancechecking.helperclasses.UnsupportedPetriNetException;
 import org.processmining.stochasticawareconformancechecking.plugins.StochasticPetriNet2StochasticDeterministicFiniteAutomatonPlugin;
 import org.processmining.xeslite.plugin.OpenLogFileLiteImplPlugin;
 import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.core.Persister;
 
-import gnu.trove.map.TObjectDoubleMap;
-import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.TCustomHashMap;
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.map.hash.TObjectDoubleHashMap;
-import gnu.trove.map.hash.TObjectIntHashMap;
 import gnu.trove.set.hash.TCustomHashSet;
 import gnu.trove.set.hash.THashSet;
 import gnu.trove.strategy.HashingStrategy;
@@ -47,14 +39,16 @@ public class EntropicRelevanceCLI {
 	//private static XEventClassifier eventClassifier = XLogInfoImpl.NAME_CLASSIFIER;
 
 	public static void main(String[] args) throws Exception {
+		System.out.println("--------------------------------------------------------------------------");
+		
 		if (args.length!=2) {
 			System.out.println("Wrong command line argumetns");
 			return;
 		}
-		
+	
 		System.out.println("PNML: " + args[0]);
 		System.out.println("XES:  " + args[1]);
-	
+		
 		// Load log
 		File fileLog = new File(args[1]); 
 		if (fileLog.isDirectory() ||!fileLog.canRead() || !fileLog.isFile()) {
@@ -75,137 +69,139 @@ public class EntropicRelevanceCLI {
 		StochasticNetDeserializer converter = new StochasticNetDeserializer();
 		Object[] objs = converter.convertToNet(context, pnml, fileNet.getName(), true); 
 		StochasticNet model = (StochasticNet) objs[0];
+
+		// warm up
+		computeEntropicRelevance(log,model);
 		
-		// Prepare log
+		// run experiment
 		long start = System.nanoTime();
-		//Collection<String> log = new ArrayList<String>();
-		Map<XTrace,Integer> logFreq = new HashMap<XTrace,Integer>();
+		computeEntropicRelevance(log,model);
+		computeEntropicRelevance(log,model);
+		computeEntropicRelevance(log,model);		
+		double entRel = computeEntropicRelevance(log,model);
+		long finish = System.nanoTime();
+		
+		// report
+		System.out.println("Entropic relevance: " + entRel);
+		System.out.println("Computation time  : " + ((double) (finish-start))/3 + " nanoseconds.");
+	}
+
+	private static double computeEntropicRelevance(XLog log, StochasticNet model) throws IllegalTransitionException {
+		// Prepare log
+		Set<String> alphabet = new HashSet<String>();
+		Map<List<String>,Integer> logFreq = new HashMap<List<String>,Integer>();
 		int nTraces = 0;
-		for (XTrace trace: log) {
+		for (XTrace t: log) {
 			nTraces++;
+			List<String> trace = EntropicRelevanceCLI.constructTrace(t);
+			alphabet.addAll(trace);
 			if (logFreq.containsKey(trace)) {
-				logFreq.put(trace, Integer.valueOf(Integer.valueOf((logFreq.get(trace)))));
+				logFreq.put(trace, Integer.valueOf(Integer.valueOf((logFreq.get(trace)))+1));
 			}
 			else {
-				logFreq.put(trace, 1);
+				logFreq.put(trace,1);
 			}
 		}
-		
-		// TODO: Compute entropic relevance
-		double entRel   = 0.0;
+				
+		// Compute entropic relevance
+		double entRel = 0.0;
 		int coverage = 0;
-		for (Map.Entry<XTrace,Integer> traceFreq: logFreq.entrySet()) {
-			// Sander: Please implement the EntropicRelevanceCLI.getTraceProbability() method.
-			// I started, but not sure how to finish :)
-			// Once this is ready, I will debug if everything works together correctly. This should take couple of minutes (max 1 hour).
+		for (Map.Entry<List<String>,Integer> traceFreq: logFreq.entrySet()) {
 			Double p = EntropicRelevanceCLI.getTraceProbability(model, traceFreq.getKey());	
 			if (!p.isNaN()) {
 				coverage += traceFreq.getValue().intValue();
 				entRel   += - ((double) traceFreq.getValue().intValue()/nTraces) * EntropicRelevanceCLI.log2(p.doubleValue());
 			}
+			else {
+				entRel += ((double) traceFreq.getValue().intValue()/nTraces) * (1+traceFreq.getKey().size()) * EntropicRelevanceCLI.log2(1+alphabet.size());
+			}
 		}
 		
 		double p = (double) coverage/nTraces;
-		System.out.println(p);
 		entRel += - p * EntropicRelevanceCLI.log2(p) - (1-p) * EntropicRelevanceCLI.log2(1-p);
-		long finish = System.nanoTime();
-		
-		System.out.println("Entropic relevance: " + entRel);
-		System.out.println("Computation time: " + (finish-start) + " nanoseconds.");
+
+		return entRel;
 	}
 
-	// TODO: Sander: PLease finalize this method.
-	public static Double getTraceProbability(StochasticNet net, XTrace trace) {
+	private static List<String> constructTrace(XTrace t) {
+		List<String> result = new ArrayList<String>();
+		
+		for (XEvent e : t) {
+			result.add(e.getAttributes().get("concept:name").toString());
+		}
+		
+		return result;
+	}
+
+	public static Double getTraceProbability(StochasticNet net, List<String> trace) throws IllegalTransitionException {
 		Marking iniMarking = StochasticPetriNet2StochasticDeterministicFiniteAutomatonPlugin.guessInitialMarking(net);
 		EfficientStochasticNetSemanticsImpl s = new EfficientStochasticNetSemanticsImpl();
 		s.initialize(net.getTransitions(), iniMarking);
 		s.setCurrentState(iniMarking);
 		short[] initialMarking = s.getCurrentInternalState().clone();
 
-		//Map<Transition, Pair<short[], Double>> enabledTransitions = getEnabledTransitions(s, marking, result);
-		
 		short[] marking = initialMarking;
 		double p = 1.0;
-		for (XEvent e : trace) {
-			String eName = e.getAttributes().get("concept:name").toString();
-			Map<Transition, Pair<short[], Double>> enabledTransitions = getEnabledTransitions(s, marking, result);
+		List<Transition[]> fpaths = new ArrayList<Transition[]>();
+		for (String event : trace) {
+			fpaths.clear();
+			Map<Transition[], short[]> paths  = getPaths(s,marking);
+			if (paths.size()==0) {
+				return Double.NaN;
+			}
+			else {
+				Transition[] spath = null; 
+				short[] smarking = null;
+				int sindex=-1;
+				int i=0;
+				for (Map.Entry<Transition[], short[]> entry : paths.entrySet()) {
+					Transition[] path = entry.getKey();
+					short[] m = entry.getValue();
+					fpaths.add(path);
+					if (path[path.length-1].getLabel().equals(event)) {
+						if (spath==null) {
+							spath = path;
+							smarking = m;
+							sindex = i;
+						}
+						else throw new IllegalArgumentException();
+					}
+					i++;
+				}
+				
+				if (spath==null) { 
+					return Double.NaN;
+				}
+				
+				double pathProb = getPathProbability(fpaths,sindex);
+				p *= pathProb;
+				marking = smarking;
+				
+			}
 		}
 		
-		return Double.NaN;
+		Map<Transition[], short[]> paths  = getPaths(s,marking);
+		if (paths.size()==0) 
+			return Double.valueOf(p);
+		else {
+			double pNotToTerminateSilently = 0.0;
+			List<Transition[]> tpaths = new ArrayList<Transition[]>();
+			tpaths.addAll(paths.keySet());
+			for (int i=0; i<paths.size(); i++) {
+				pNotToTerminateSilently+=getPathProbability(fpaths,i);
+			}
+			return Double.valueOf(p*(1-pNotToTerminateSilently));
+		}
 	}
-	
+
 	public static double log2(double d)
     {
-		if(d <= 0) throw new IllegalArgumentException();
+		if (d < 0.0) throw new IllegalArgumentException();
+		if (d== 0.0) return 0.0;
+		
 		return Math.log(d) / Math.log(2);
     }
 	
-	/**
-	 * Search through the enabled state spaces following tau transitions for
-	 * non-silent transitions that are enabled.
-	 * 
-	 * @param mc
-	 * @param automaton
-	 * 
-	 * @return
-	 * @throws IllegalTransitionException
-	 * @throws UnsupportedPetriNetException
-	 */
-	private static Map<Transition, Pair<short[], Double>> getEnabledTransitions(
-			EfficientStochasticNetSemanticsImpl semantics, 
-			short[] startMarking,
-			StochasticDeterministicFiniteAutomaton automaton) throws IllegalTransitionException {
-
-		Map<Transition[], short[]> path2marking = getPaths(semantics, startMarking);
-		List<Transition[]> paths = new ArrayList<>(path2marking.keySet());
-
-		//gather the probabilities for each transition
-		double termination = 0;
-		TObjectDoubleMap<Transition> probabilities = new TObjectDoubleHashMap<>(10, 0.5f, 0);
-		Iterator<Transition[]> it = paths.iterator();
-		for (int i = 0; i < paths.size(); i++) {
-			Transition[] path = it.next();
-
-			Transition t = path[path.length - 1];
-
-			if (t.isInvisible()) {
-				//the last transition on this path is silent, so this path adds to the termination probability. 
-				termination = termination + getPathProbability(paths, i, automaton);
-			} else {
-				//the last transition on this path is an activity, so this path adds to the probability of that activity.
-				double probability = getPathProbability(paths, i, automaton);
-
-				probabilities.put(t, probabilities.get(t) + probability);
-			}
-		}
-
-		//keep track of the shortest path for each transition (prevents concurrent silent transitions to interfere)
-		THashMap<Transition, Transition[]> shortestPaths = new THashMap<>();
-		{
-			TObjectIntMap<Transition> shortestPathsLengths = new TObjectIntHashMap<>(10, 0.5f, Integer.MAX_VALUE);
-			for (Transition[] path : paths) {
-				Transition t = path[path.length - 1];
-
-				if (!t.isInvisible()) {
-					int shortestPath = shortestPathsLengths.get(t);
-					if (path.length < shortestPath) {
-						shortestPathsLengths.put(t, path.length);
-						shortestPaths.put(t, path);
-					}
-				}
-			}
-		}
-
-		//gather the result
-		Map<Transition, Pair<short[], Double>> result = new THashMap<>();
-		for (Transition t : shortestPaths.keySet()) {
-			Transition[] path = shortestPaths.get(t);
-			result.put(t, Pair.of(path2marking.get(path), probabilities.get(t)));
-		}
-
-		return result;
-	}
-
 	/**
 	 * 
 	 * @param paths
@@ -213,8 +209,7 @@ public class EntropicRelevanceCLI {
 	 * @param automaton
 	 * @return the probability of the path
 	 */
-	private static double getPathProbability(List<Transition[]> paths, int pathIndex,
-			StochasticDeterministicFiniteAutomaton automaton) {
+	private static double getPathProbability(List<Transition[]> paths, int pathIndex) {
 		BitSet prefixMatches = new BitSet(paths.size());
 		prefixMatches.set(0, paths.size());
 		Transition[] path = paths.get(pathIndex);
