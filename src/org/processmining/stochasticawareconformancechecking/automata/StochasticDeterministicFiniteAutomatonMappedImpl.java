@@ -2,10 +2,11 @@ package org.processmining.stochasticawareconformancechecking.automata;
 
 import java.util.ArrayList;
 
+import org.apache.commons.lang.NotImplementedException;
+
 import gnu.trove.iterator.TShortIterator;
 import gnu.trove.map.TObjectShortMap;
 import gnu.trove.map.hash.TObjectShortHashMap;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class StochasticDeterministicFiniteAutomatonMappedImpl extends StochasticDeterministicFiniteAutomatonImpl
 		implements StochasticDeterministicFiniteAutomatonMapped {
