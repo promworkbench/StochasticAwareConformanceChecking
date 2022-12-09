@@ -101,6 +101,8 @@ public class StochasticDeterministicFiniteAutomatonImpl implements StochasticDet
 	public void addEdge(int source, short activity, int target, double probability) {
 		assert (source >= 0);
 		assert (target >= 0);
+		assert (probability >= 0);
+		assert (probability <= 1);
 
 		maxState = Math.max(maxState, target);
 

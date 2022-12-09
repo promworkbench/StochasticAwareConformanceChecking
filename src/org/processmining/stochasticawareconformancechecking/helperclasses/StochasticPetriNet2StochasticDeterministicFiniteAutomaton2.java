@@ -46,8 +46,8 @@ public class StochasticPetriNet2StochasticDeterministicFiniteAutomaton2 {
 	 * @throws IllegalTransitionException
 	 * @throws UnsupportedPetriNetException
 	 */
-	public static StochasticDeterministicFiniteAutomatonMapped convert(StochasticNet net,
-			Marking initialMarking) throws IllegalTransitionException, UnsupportedPetriNetException {
+	public static StochasticDeterministicFiniteAutomatonMapped convert(StochasticNet net, Marking initialMarking)
+			throws IllegalTransitionException, UnsupportedPetriNetException {
 		EfficientStochasticNetSemanticsImpl s = new EfficientStochasticNetSemanticsImpl();
 
 		s.initialize(net.getTransitions(), initialMarking);
@@ -59,8 +59,8 @@ public class StochasticPetriNet2StochasticDeterministicFiniteAutomaton2 {
 		return convert(net, initialMarkingS, s);
 	}
 
-	private static StochasticDeterministicFiniteAutomatonMapped convert(StochasticNet net,
-			short[] initialMarking, EfficientStochasticNetSemanticsImpl s) throws IllegalTransitionException {
+	private static StochasticDeterministicFiniteAutomatonMapped convert(StochasticNet net, short[] initialMarking,
+			EfficientStochasticNetSemanticsImpl s) throws IllegalTransitionException, UnsupportedPetriNetException {
 		StochasticDeterministicFiniteAutomatonMappedImpl result = new StochasticDeterministicFiniteAutomatonMappedImpl();
 
 		ArrayDeque<short[]> worklist = new ArrayDeque<>();
@@ -87,6 +87,19 @@ public class StochasticPetriNet2StochasticDeterministicFiniteAutomaton2 {
 
 			s.setCurrentState(marking);
 			Map<Transition, Pair<short[], Double>> enabledTransitions = getEnabledTransitions(s, marking, result);
+
+			//check that there are no transitions enabled with equivalent labels
+			{
+				Set<String> seenLabels = new THashSet<>();
+				for (Transition t : enabledTransitions.keySet()) {
+					if (!t.isInvisible()) {
+						if (!seenLabels.add(t.getLabel())) {
+							throw new UnsupportedPetriNetException(
+									"in a reachable marking, two transitions with the same label are enabled");
+						}
+					}
+				}
+			}
 
 			//System.out.println(enabledTransitions);
 
